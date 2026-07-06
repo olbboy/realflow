@@ -1,0 +1,441 @@
+import {
+  memo,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import type {
+  KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent as ReactMouseEvent,
+  PointerEvent as ReactPointerEvent,
+  ReactNode,
+} from 'react';
+import { FlowStore, rectFromPoints, screenToFlow } from '@reflow/core';
+import type { Edge, Node, Viewport, XY } from '@reflow/core';
+import { FlowContext } from './context';
+import { ConfigContext, ContainerContext } from './config';
+import { createApi } from './hooks';
+import { NodesLayer, builtinNodeTypes } from './NodeRenderer';
+import { EdgesLayer } from './EdgeRenderer';
+import type { FlowConfig, ReFlowProps } from './types';
+
+interface PaneSession {
+  pointerId: number;
+  mode: 'pan' | 'box';
+  startClient: XY;
+  startViewport: Viewport;
+  startFlow: XY;
+  moved: boolean;
+  raf: number | null;
+  lastClient: XY;
+}
+
+const INPUT_SELECTOR = 'input, textarea, select, [contenteditable="true"]';
+
+/**
+ * Standalone provider for using ReFlow hooks outside the <ReFlow> canvas
+ * (toolbars, sidebars, inspectors).
+ */
+export const ReFlowProvider = ({ children }: { children: ReactNode }): React.JSX.Element => {
+  const [store] = useState(() => new FlowStore());
+  return <FlowContext.Provider value={store}>{children}</FlowContext.Provider>;
+};
+
+/** The ReFlow canvas. */
+export const ReFlow = memo(function ReFlow(props: ReFlowProps) {
+  const {
+    nodes,
+    edges,
+    defaultNodes,
+    defaultEdges,
+    onNodesChange,
+    onEdgesChange,
+    onSelectionChange,
+    onConnect,
+    onNodeClick,
+    onNodeDoubleClick,
+    onNodeContextMenu,
+    onEdgeClick,
+    onPaneClick,
+    onPaneContextMenu,
+    onInit,
+    nodeTypes,
+    edgeTypes,
+    fitViewOnInit = true,
+    fitViewOptions,
+    defaultViewport,
+    minZoom = 0.1,
+    maxZoom = 2.5,
+    snapGrid = 0,
+    alignmentGuides = true,
+    preventCycles = false,
+    allowDuplicateEdges = false,
+    validateConnection,
+    defaultEdgeOptions,
+    historyLimit,
+    readOnly = false,
+    panOnDrag = true,
+    zoomOnScroll = true,
+    zoomOnDoubleClick = true,
+    selectionOnDrag = false,
+    deleteKey = true,
+    keyboardShortcuts = true,
+    colorMode = 'auto',
+    className,
+    style,
+    children,
+  } = props;
+
+  const parentStore = useContext(FlowContext);
+  const [ownStore] = useState(
+    () =>
+      parentStore ??
+      new FlowStore({
+        nodes: nodes ?? defaultNodes ?? [],
+        edges: edges ?? defaultEdges ?? [],
+        viewport: defaultViewport,
+      })
+  );
+  const store = parentStore ?? ownStore;
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const pane = useRef<PaneSession | null>(null);
+  const [boxRect, setBoxRect] = useState<{ x: number; y: number; w: number; h: number } | null>(
+    null
+  );
+  const seeded = useRef(false);
+
+  // Keep store options in sync with props (mutable by design).
+  store.options = {
+    ...store.options,
+    minZoom,
+    maxZoom,
+    snapGrid,
+    alignmentGuides,
+    preventCycles,
+    allowDuplicateEdges,
+    validateConnection,
+    defaultEdgeOptions,
+    historyLimit,
+  };
+
+  // Latest event callbacks without re-rendering the tree.
+  const cbs = useRef({
+    onConnect,
+    onNodeClick,
+    onNodeDoubleClick,
+    onNodeContextMenu,
+    onEdgeClick,
+    onPaneClick,
+    onPaneContextMenu,
+    onNodesChange,
+    onEdgesChange,
+    onSelectionChange,
+  });
+  cbs.current = {
+    onConnect,
+    onNodeClick,
+    onNodeDoubleClick,
+    onNodeContextMenu,
+    onEdgeClick,
+    onPaneClick,
+    onPaneContextMenu,
+    onNodesChange,
+    onEdgesChange,
+    onSelectionChange,
+  };
+
+  const config = useMemo<FlowConfig>(
+    () => ({
+      nodeTypes: { ...builtinNodeTypes, ...nodeTypes },
+      edgeTypes: edgeTypes ?? {},
+      readOnly,
+      onConnect: (edge) => cbs.current.onConnect?.(edge),
+      onNodeClick: (e, n) => cbs.current.onNodeClick?.(e, n),
+      onNodeDoubleClick: (e, n) => cbs.current.onNodeDoubleClick?.(e, n),
+      onNodeContextMenu: cbs.current.onNodeContextMenu
+        ? (e, n) => cbs.current.onNodeContextMenu?.(e, n)
+        : undefined,
+      onEdgeClick: (e, edge) => cbs.current.onEdgeClick?.(e, edge),
+    }),
+    [nodeTypes, edgeTypes, readOnly]
+  );
+
+  // ── controlled-mode sync ────────────────────────────────────────────────
+  const lastNodes = useRef<Node[] | null>(null);
+  const lastEdges = useRef<Edge[] | null>(null);
+  useEffect(() => {
+    const nodesChanged = nodes && nodes !== lastNodes.current;
+    const edgesChanged = edges && edges !== lastEdges.current;
+    if (nodesChanged || edgesChanged) {
+      store.setGraph(nodes ?? store.getNodes(), edges ?? store.getEdges());
+      if (nodes) lastNodes.current = nodes;
+      if (edges) lastEdges.current = edges;
+    }
+  }, [store, nodes, edges]);
+
+  useEffect(() => {
+    const unsubs = [
+      store.subscribe('commit', () => {
+        if (cbs.current.onNodesChange) {
+          const ns = store.getNodes();
+          lastNodes.current = ns;
+          cbs.current.onNodesChange(ns);
+        }
+        if (cbs.current.onEdgesChange) {
+          const es = store.getEdges();
+          lastEdges.current = es;
+          cbs.current.onEdgesChange(es);
+        }
+      }),
+      store.subscribe('selection', () => {
+        cbs.current.onSelectionChange?.({
+          nodes: [...store.selectedNodes],
+          edges: [...store.selectedEdges],
+        });
+      }),
+    ];
+    return () => unsubs.forEach((u) => u());
+  }, [store]);
+
+  // ── init: seed provider store, measure, fit ────────────────────────────
+  useEffect(() => {
+    if (seeded.current) return;
+    seeded.current = true;
+    if (parentStore && store.nodes.size === 0 && (defaultNodes || nodes)) {
+      store.setGraph(nodes ?? defaultNodes ?? [], edges ?? defaultEdges ?? []);
+      if (nodes) lastNodes.current = nodes;
+      if (edges) lastEdges.current = edges;
+    }
+    if (defaultViewport && parentStore) store.setViewport(defaultViewport);
+    // Wait two frames so nodes get measured before fitting.
+    if (fitViewOnInit) {
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => store.fitView({ padding: 0.12, ...fitViewOptions }))
+      );
+    }
+    onInit?.(createApi(store));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── container size tracking ─────────────────────────────────────────────
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    store.setScreenSize(el.clientWidth, el.clientHeight);
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => {
+      store.setScreenSize(el.clientWidth, el.clientHeight);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [store]);
+
+  // ── viewport transform: direct DOM, zero React re-renders ──────────────
+  useEffect(() => {
+    const apply = (): void => {
+      const el = viewportRef.current;
+      if (!el) return;
+      const { x, y, zoom } = store.viewport;
+      el.style.transform = `translate(${x}px, ${y}px) scale(${zoom})`;
+    };
+    apply();
+    return store.subscribe('viewport', apply);
+  }, [store]);
+
+  // ── wheel zoom (non-passive so we can preventDefault) ──────────────────
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent): void => {
+      if (!zoomOnScroll && !e.ctrlKey) return;
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      const pivot = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      let delta = e.deltaY;
+      if (e.deltaMode === 1) delta *= 16;
+      const factor = Math.exp(-delta * (e.ctrlKey ? 0.0075 : 0.002));
+      store.zoomBy(factor, pivot);
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [store, zoomOnScroll]);
+
+  // ── pane interactions: pan, box-select, click ───────────────────────────
+  const clientToFlow = (clientX: number, clientY: number): XY => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    return screenToFlow(
+      { x: clientX - (rect?.left ?? 0), y: clientY - (rect?.top ?? 0) },
+      store.viewport
+    );
+  };
+
+  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>): void => {
+    containerRef.current?.focus({ preventScroll: true });
+    if (e.button !== 0 && e.button !== 1) return;
+    const wantBox =
+      !readOnly && e.button === 0 && (selectionOnDrag ? !e.altKey : e.shiftKey);
+    const wantPan = !wantBox && panOnDrag !== false;
+    if (!wantBox && !wantPan) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    pane.current = {
+      pointerId: e.pointerId,
+      mode: wantBox ? 'box' : 'pan',
+      startClient: { x: e.clientX, y: e.clientY },
+      startViewport: { ...store.viewport },
+      startFlow: clientToFlow(e.clientX, e.clientY),
+      moved: false,
+      raf: null,
+      lastClient: { x: e.clientX, y: e.clientY },
+    };
+    if (wantBox) setBoxRect(null);
+  };
+
+  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>): void => {
+    const s = pane.current;
+    if (!s || e.pointerId !== s.pointerId) return;
+    s.lastClient = { x: e.clientX, y: e.clientY };
+    const dx = e.clientX - s.startClient.x;
+    const dy = e.clientY - s.startClient.y;
+    if (!s.moved && Math.hypot(dx, dy) < 3) return;
+    s.moved = true;
+    if (s.raf != null) return;
+    s.raf = requestAnimationFrame(() => {
+      s.raf = null;
+      if (pane.current !== s) return;
+      const ddx = s.lastClient.x - s.startClient.x;
+      const ddy = s.lastClient.y - s.startClient.y;
+      if (s.mode === 'pan') {
+        store.setViewport({
+          x: s.startViewport.x + ddx,
+          y: s.startViewport.y + ddy,
+          zoom: s.startViewport.zoom,
+        });
+      } else {
+        const from = s.startFlow;
+        const to = clientToFlow(s.lastClient.x, s.lastClient.y);
+        const rect = rectFromPoints(from, to);
+        store.setSelection(store.nodesInRect(rect));
+        const cr = containerRef.current!.getBoundingClientRect();
+        setBoxRect({
+          x: Math.min(s.startClient.x, s.lastClient.x) - cr.left,
+          y: Math.min(s.startClient.y, s.lastClient.y) - cr.top,
+          w: Math.abs(ddx),
+          h: Math.abs(ddy),
+        });
+      }
+    });
+  };
+
+  const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>): void => {
+    const s = pane.current;
+    if (!s || e.pointerId !== s.pointerId) return;
+    pane.current = null;
+    if (s.raf != null) cancelAnimationFrame(s.raf);
+    setBoxRect(null);
+    e.currentTarget.releasePointerCapture(e.pointerId);
+    if (!s.moved && e.button === 0) {
+      // Pane click: clear selection (keep it with shift) and notify.
+      if (!e.shiftKey && !readOnly) {
+        store.cancelConnection();
+        store.clearSelection();
+      }
+      cbs.current.onPaneClick?.(e as unknown as ReactMouseEvent, clientToFlow(e.clientX, e.clientY));
+    }
+  };
+
+  const onDoubleClick = (e: ReactMouseEvent<HTMLDivElement>): void => {
+    if (!zoomOnDoubleClick) return;
+    const rect = containerRef.current!.getBoundingClientRect();
+    store.zoomBy(1.5, { x: e.clientX - rect.left, y: e.clientY - rect.top });
+  };
+
+  const onContextMenu = (e: ReactMouseEvent<HTMLDivElement>): void => {
+    if (cbs.current.onPaneContextMenu) {
+      e.preventDefault();
+      cbs.current.onPaneContextMenu(e, clientToFlow(e.clientX, e.clientY));
+    }
+  };
+
+  // ── keyboard shortcuts ──────────────────────────────────────────────────
+  const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>): void => {
+    if (!keyboardShortcuts || readOnly) return;
+    if ((e.target as Element).closest(INPUT_SELECTOR)) return;
+    const mod = e.metaKey || e.ctrlKey;
+    const key = e.key;
+    if (deleteKey && (key === 'Delete' || key === 'Backspace')) {
+      e.preventDefault();
+      store.deleteSelection();
+    } else if (mod && !e.shiftKey && key.toLowerCase() === 'z') {
+      e.preventDefault();
+      store.undo();
+    } else if ((mod && e.shiftKey && key.toLowerCase() === 'z') || (mod && key.toLowerCase() === 'y')) {
+      e.preventDefault();
+      store.redo();
+    } else if (mod && key.toLowerCase() === 'a') {
+      e.preventDefault();
+      store.selectAll();
+    } else if (key === 'Escape') {
+      store.cancelConnection();
+      store.clearSelection();
+    } else if (key.startsWith('Arrow') && store.selectedNodes.size > 0) {
+      e.preventDefault();
+      const step = (e.shiftKey ? 10 : 1) * Math.max(1, snapGrid);
+      const d: XY =
+        key === 'ArrowLeft'
+          ? { x: -step, y: 0 }
+          : key === 'ArrowRight'
+            ? { x: step, y: 0 }
+            : key === 'ArrowUp'
+              ? { x: 0, y: -step }
+              : { x: 0, y: step };
+      store.transact('nudge', () => {
+        for (const id of store.selectedNodes) {
+          const n = store.getNode(id);
+          if (n && n.draggable !== false) {
+            store.setNodePosition(id, { x: n.position.x + d.x, y: n.position.y + d.y });
+          }
+        }
+      });
+    }
+  };
+
+  return (
+    <FlowContext.Provider value={store}>
+      <ConfigContext.Provider value={config}>
+        <ContainerContext.Provider value={containerRef}>
+          <div
+            ref={containerRef}
+            className={`rf-container${className ? ` ${className}` : ''}`}
+            style={style}
+            data-rf-theme={colorMode !== 'auto' ? colorMode : undefined}
+            tabIndex={0}
+            role="application"
+            aria-label="Flow canvas"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onDoubleClick={onDoubleClick}
+            onContextMenu={onContextMenu}
+            onKeyDown={onKeyDown}
+          >
+            <div ref={viewportRef} className="rf-viewport">
+              <EdgesLayer />
+              <NodesLayer />
+            </div>
+            {boxRect ? (
+              <div
+                className="rf-selection-box"
+                style={{ left: boxRect.x, top: boxRect.y, width: boxRect.w, height: boxRect.h }}
+              />
+            ) : null}
+            {children}
+          </div>
+        </ContainerContext.Provider>
+      </ConfigContext.Provider>
+    </FlowContext.Provider>
+  );
+});

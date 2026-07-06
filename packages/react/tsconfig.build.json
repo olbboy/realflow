@@ -2,10 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src",
-    "paths": {
-      "@reflow/core": ["../core/src/index.ts"]
-    }
+    "rootDir": "src"
   },
   "include": ["src"]
 }

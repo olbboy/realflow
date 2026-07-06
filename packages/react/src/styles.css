@@ -1,0 +1,527 @@
+/* ReFlow default theme — beautiful out of the box, light & dark. */
+
+.rf-container {
+  /* ── design tokens (light) ─────────────────────────────────────────── */
+  --rf-accent: #6366f1;
+  --rf-accent-soft: rgba(99, 102, 241, 0.14);
+  --rf-danger: #f43f5e;
+  --rf-bg: #fafafa;
+  --rf-pattern: #c9c9d2;
+  --rf-node-bg: #ffffff;
+  --rf-node-border: #e4e4e7;
+  --rf-node-border-hover: #c7c7d1;
+  --rf-node-text: #18181b;
+  --rf-node-text-dim: #71717a;
+  --rf-node-shadow: 0 1px 2px rgba(24, 24, 27, 0.06), 0 4px 12px rgba(24, 24, 27, 0.05);
+  --rf-node-shadow-hover: 0 2px 4px rgba(24, 24, 27, 0.08), 0 8px 24px rgba(24, 24, 27, 0.1);
+  --rf-node-radius: 10px;
+  --rf-edge: #9ca3af;
+  --rf-edge-hover: #6b7280;
+  --rf-edge-selected: var(--rf-accent);
+  --rf-edge-width: 1.5px;
+  --rf-edge-label-bg: rgba(255, 255, 255, 0.92);
+  --rf-edge-label-text: #52525b;
+  --rf-handle-bg: #ffffff;
+  --rf-handle-border: #a1a1aa;
+  --rf-panel-bg: rgba(255, 255, 255, 0.85);
+  --rf-panel-border: rgba(24, 24, 27, 0.08);
+  --rf-panel-shadow: 0 4px 20px rgba(24, 24, 27, 0.1);
+  --rf-minimap-node: rgba(24, 24, 27, 0.14);
+  --rf-minimap-mask: rgba(99, 102, 241, 0.08);
+  --rf-group-bg: rgba(99, 102, 241, 0.05);
+  --rf-group-border: rgba(99, 102, 241, 0.35);
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  outline: none;
+  background: var(--rf-bg);
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  color: var(--rf-node-text);
+}
+
+.rf-container[data-rf-theme='dark'] {
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  .rf-container:not([data-rf-theme='light']) {
+    color-scheme: dark;
+  }
+}
+
+.rf-container[data-rf-theme='dark'],
+:root[data-theme='dark'] .rf-container:not([data-rf-theme='light']) {
+  --rf-accent: #818cf8;
+  --rf-accent-soft: rgba(129, 140, 248, 0.18);
+  --rf-bg: #0b0b0f;
+  --rf-pattern: #2e2e38;
+  --rf-node-bg: #17171c;
+  --rf-node-border: #26262e;
+  --rf-node-border-hover: #3d3d49;
+  --rf-node-text: #e6e6ea;
+  --rf-node-text-dim: #86868f;
+  --rf-node-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 16px rgba(0, 0, 0, 0.35);
+  --rf-node-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.5), 0 10px 28px rgba(0, 0, 0, 0.5);
+  --rf-edge: #4b5563;
+  --rf-edge-hover: #7b8494;
+  --rf-edge-label-bg: rgba(23, 23, 28, 0.92);
+  --rf-edge-label-text: #a1a1aa;
+  --rf-handle-bg: #17171c;
+  --rf-handle-border: #52525f;
+  --rf-panel-bg: rgba(23, 23, 28, 0.85);
+  --rf-panel-border: rgba(255, 255, 255, 0.09);
+  --rf-panel-shadow: 0 4px 24px rgba(0, 0, 0, 0.55);
+  --rf-minimap-node: rgba(230, 230, 234, 0.22);
+  --rf-minimap-mask: rgba(129, 140, 248, 0.12);
+  --rf-group-bg: rgba(129, 140, 248, 0.07);
+  --rf-group-border: rgba(129, 140, 248, 0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+  .rf-container:not([data-rf-theme='light']) {
+    --rf-accent: #818cf8;
+    --rf-accent-soft: rgba(129, 140, 248, 0.18);
+    --rf-bg: #0b0b0f;
+    --rf-pattern: #2e2e38;
+    --rf-node-bg: #17171c;
+    --rf-node-border: #26262e;
+    --rf-node-border-hover: #3d3d49;
+    --rf-node-text: #e6e6ea;
+    --rf-node-text-dim: #86868f;
+    --rf-node-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 16px rgba(0, 0, 0, 0.35);
+    --rf-node-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.5), 0 10px 28px rgba(0, 0, 0, 0.5);
+    --rf-edge: #4b5563;
+    --rf-edge-hover: #7b8494;
+    --rf-edge-label-bg: rgba(23, 23, 28, 0.92);
+    --rf-edge-label-text: #a1a1aa;
+    --rf-handle-bg: #17171c;
+    --rf-handle-border: #52525f;
+    --rf-panel-bg: rgba(23, 23, 28, 0.85);
+    --rf-panel-border: rgba(255, 255, 255, 0.09);
+    --rf-panel-shadow: 0 4px 24px rgba(0, 0, 0, 0.55);
+    --rf-minimap-node: rgba(230, 230, 234, 0.22);
+    --rf-minimap-mask: rgba(129, 140, 248, 0.12);
+    --rf-group-bg: rgba(129, 140, 248, 0.07);
+    --rf-group-border: rgba(129, 140, 248, 0.4);
+  }
+}
+
+/* Explicit light override wins over page-level dark. */
+.rf-container[data-rf-theme='light'] {
+  color-scheme: light;
+}
+
+/* ── layers ──────────────────────────────────────────────────────────── */
+
+.rf-viewport {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  z-index: 1;
+}
+
+.rf-background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.rf-bg-dot {
+  fill: var(--rf-pattern);
+}
+
+.rf-bg-line,
+.rf-bg-cross {
+  stroke: var(--rf-pattern);
+}
+
+/* ── nodes ───────────────────────────────────────────────────────────── */
+
+.rf-nodes {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.rf-node {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+
+.rf-node.rf-draggable {
+  cursor: grab;
+}
+
+.rf-node.rf-draggable:active {
+  cursor: grabbing;
+}
+
+.rf-node-content {
+  position: relative;
+  width: max-content;
+}
+
+/* Built-in node look */
+.rf-default-node {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 130px;
+  padding: 10px 14px;
+  background: var(--rf-node-bg);
+  border: 1px solid var(--rf-node-border);
+  border-radius: var(--rf-node-radius);
+  box-shadow: var(--rf-node-shadow);
+  color: var(--rf-node-text);
+  font-size: 13px;
+  line-height: 1.35;
+  transition:
+    border-color 120ms ease,
+    box-shadow 160ms ease;
+}
+
+.rf-default-node::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--rf-node-accent, transparent);
+}
+
+.rf-node:hover > .rf-node-content > .rf-default-node {
+  border-color: var(--rf-node-border-hover);
+  box-shadow: var(--rf-node-shadow-hover);
+}
+
+.rf-node.rf-selected > .rf-node-content > .rf-default-node,
+.rf-node.rf-selected > .rf-node-content > .rf-group-node {
+  border-color: var(--rf-accent);
+  box-shadow:
+    0 0 0 3px var(--rf-accent-soft),
+    var(--rf-node-shadow-hover);
+}
+
+.rf-default-node-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.rf-default-node-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rf-default-node-label {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rf-default-node-desc {
+  font-size: 11px;
+  color: var(--rf-node-text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rf-group-node {
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  background: var(--rf-group-bg);
+  border: 1.5px dashed var(--rf-group-border);
+  border-radius: 14px;
+  box-sizing: border-box;
+}
+
+.rf-group-node-label {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--rf-node-text-dim);
+}
+
+/* Group nodes need explicit sizes; make the content div honor them. */
+.rf-node[data-type='group'] > .rf-node-content {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── handles ─────────────────────────────────────────────────────────── */
+
+.rf-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--rf-handle-bg);
+  border: 1.5px solid var(--rf-handle-border);
+  z-index: 2;
+  cursor: crosshair;
+  transition:
+    transform 100ms ease,
+    border-color 100ms ease,
+    background 100ms ease;
+  touch-action: none;
+}
+
+.rf-handle:hover {
+  transform: scale(1.35);
+  border-color: var(--rf-accent);
+  background: var(--rf-accent-soft);
+}
+
+.rf-handle-left {
+  left: -6px;
+  top: 50%;
+  margin-top: -5px;
+}
+
+.rf-handle-right {
+  right: -6px;
+  top: 50%;
+  margin-top: -5px;
+}
+
+.rf-handle-top {
+  top: -6px;
+  left: 50%;
+  margin-left: -5px;
+}
+
+.rf-handle-bottom {
+  bottom: -6px;
+  left: 50%;
+  margin-left: -5px;
+}
+
+/* ── edges ───────────────────────────────────────────────────────────── */
+
+.rf-edges {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 2px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.rf-edge-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 16;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+.rf-edge-path {
+  fill: none;
+  stroke: var(--rf-edge);
+  stroke-width: var(--rf-edge-width);
+  transition: stroke 120ms ease;
+}
+
+.rf-edge:hover .rf-edge-path {
+  stroke: var(--rf-edge-hover);
+}
+
+.rf-edge.rf-selected .rf-edge-path {
+  stroke: var(--rf-edge-selected);
+  stroke-width: 2px;
+}
+
+.rf-edge.rf-animated .rf-edge-path {
+  stroke-dasharray: 6 4;
+  animation: rf-dash 0.6s linear infinite;
+}
+
+@keyframes rf-dash {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+
+.rf-edge-label text {
+  font-size: 11px;
+  fill: var(--rf-edge-label-text);
+  font-weight: 500;
+}
+
+.rf-edge-label-bg {
+  fill: var(--rf-edge-label-bg);
+  x: -26px;
+  y: -11px;
+  width: 52px;
+  height: 22px;
+}
+
+.rf-connection-line {
+  fill: none;
+  stroke: var(--rf-accent);
+  stroke-width: 2;
+  stroke-dasharray: 7 5;
+  animation: rf-dash 0.5s linear infinite;
+  pointer-events: none;
+}
+
+.rf-connection-line.rf-invalid {
+  stroke: var(--rf-danger);
+}
+
+.rf-guide {
+  stroke: var(--rf-danger);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+/* ── selection box ───────────────────────────────────────────────────── */
+
+.rf-selection-box {
+  position: absolute;
+  z-index: 4;
+  background: var(--rf-accent-soft);
+  border: 1px solid var(--rf-accent);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* ── panels / controls / minimap ─────────────────────────────────────── */
+
+.rf-panel {
+  position: absolute;
+  z-index: 5;
+  margin: 14px;
+  display: flex;
+  gap: 6px;
+}
+
+.rf-panel-top-left {
+  top: 0;
+  left: 0;
+}
+
+.rf-panel-top-center {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.rf-panel-top-right {
+  top: 0;
+  right: 0;
+}
+
+.rf-panel-bottom-left {
+  bottom: 0;
+  left: 0;
+}
+
+.rf-panel-bottom-center {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.rf-panel-bottom-right {
+  bottom: 0;
+  right: 0;
+}
+
+.rf-controls {
+  flex-direction: column;
+  gap: 0;
+  background: var(--rf-panel-bg);
+  border: 1px solid var(--rf-panel-border);
+  border-radius: 10px;
+  box-shadow: var(--rf-panel-shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  overflow: hidden;
+}
+
+.rf-control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--rf-node-text);
+  cursor: pointer;
+  transition: background 100ms ease;
+}
+
+.rf-control-btn:hover:not(:disabled) {
+  background: var(--rf-accent-soft);
+  color: var(--rf-accent);
+}
+
+.rf-control-btn:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
+.rf-minimap-panel {
+  padding: 0;
+}
+
+.rf-minimap {
+  display: block;
+  background: var(--rf-panel-bg);
+  border: 1px solid var(--rf-panel-border);
+  border-radius: 12px;
+  box-shadow: var(--rf-panel-shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+}
+
+.rf-minimap-node {
+  fill: var(--rf-minimap-node);
+}
+
+.rf-minimap-node.rf-selected {
+  fill: var(--rf-accent);
+}
+
+.rf-minimap-viewport {
+  fill: var(--rf-minimap-mask);
+  stroke: var(--rf-accent);
+  stroke-width: 1.2;
+}

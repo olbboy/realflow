@@ -85,10 +85,20 @@ export class FlowStore {
   /** When false (small graphs / no screen yet), everything renders. */
   cullingActive = false;
 
+  /** Bumped whenever node membership/order changes ('nodes' topic). */
+  nodesVersion = 0;
+  /** Bumped whenever edge membership/order changes ('edges' topic). */
+  edgesVersion = 0;
+  /** Bumped on every committed mutation boundary ('commit' topic). */
+  commitVersion = 0;
+
   screen = { width: 0, height: 0 };
   options: StoreOptions;
 
   readonly spatial = new SpatialIndex();
+  /** Renderer-measured sizes, kept apart from node objects so measuring
+   *  never re-creates (and re-renders) a node. node.width/height wins. */
+  private measured = new Map<string, { width: number; height: number }>();
   private nodeEdges = new Map<string, Set<string>>();
   private children = new Map<string, Set<string>>();
   private handles = new Map<string, Map<string, HandleInfo>>();
@@ -117,6 +127,7 @@ export class FlowStore {
       });
       this.recording = true;
     }
+    this.cull();
   }
 
   // ── events ────────────────────────────────────────────────────────────
@@ -132,6 +143,18 @@ export class FlowStore {
       set.delete(fn);
       if (set.size === 0) this.listeners.delete(topic);
     };
+  }
+
+  private bumpNodes(): void {
+    this.nodesVersion++;
+    this.emit('nodes');
+    this.emit('graph');
+  }
+
+  private bumpEdges(): void {
+    this.edgesVersion++;
+    this.emit('edges');
+    this.emit('graph');
   }
 
   private emit(topic: string): void {
@@ -162,6 +185,7 @@ export class FlowStore {
   }
 
   private commit(): void {
+    this.commitVersion++;
     this.emit('commit');
   }
 
@@ -257,7 +281,7 @@ export class FlowStore {
     }
     if (node.selected) this.selectedNodes.add(node.id);
     this.spatial.set(node.id, this.nodeRect(node.id));
-    this.emit('nodes');
+    this.bumpNodes();
     this.emit(`node:${node.id}`);
     this.scheduleCull();
   }
@@ -271,9 +295,10 @@ export class FlowStore {
     if (node.parentId) this.children.get(node.parentId)?.delete(id);
     this.children.delete(id);
     this.handles.delete(id);
+    this.measured.delete(id);
     this.selectedNodes.delete(id);
     this.spatial.delete(id);
-    this.emit('nodes');
+    this.bumpNodes();
     this.emit(`node:${id}`);
     this.scheduleCull();
   }
@@ -291,7 +316,7 @@ export class FlowStore {
         }
         set.add(node.id);
       }
-      this.emit('nodes');
+      this.bumpNodes();
     }
     if (node.selected) this.selectedNodes.add(node.id);
     else this.selectedNodes.delete(node.id);
@@ -310,7 +335,7 @@ export class FlowStore {
       set.add(edge.id);
     }
     if (edge.selected) this.selectedEdges.add(edge.id);
-    this.emit('edges');
+    this.bumpEdges();
     this.emit(`edge:${edge.id}`);
     this.scheduleCull();
   }
@@ -324,7 +349,7 @@ export class FlowStore {
     this.nodeEdges.get(edge.source)?.delete(id);
     this.nodeEdges.get(edge.target)?.delete(id);
     this.selectedEdges.delete(id);
-    this.emit('edges');
+    this.bumpEdges();
     this.emit(`edge:${id}`);
   }
 
@@ -352,6 +377,7 @@ export class FlowStore {
   private touchNode(id: string): void {
     this.spatial.set(id, this.nodeRect(id));
     this.emit(`node:${id}`);
+    this.emit('graph');
     const edges = this.nodeEdges.get(id);
     if (edges) for (const eid of edges) this.emit(`edge:${eid}`);
     const kids = this.children.get(id);
@@ -508,9 +534,10 @@ export class FlowStore {
 
   /** Measured size update from the renderer — not recorded in history. */
   setNodeSize(id: string, width: number, height: number): void {
-    const prev = this.nodes.get(id);
-    if (!prev || (prev.width === width && prev.height === height)) return;
-    this.nodes.set(id, { ...prev, width, height });
+    if (!this.nodes.has(id)) return;
+    const prev = this.measured.get(id);
+    if (prev && prev.width === width && prev.height === height) return;
+    this.measured.set(id, { width, height });
     this.touchNode(id);
   }
 
@@ -571,14 +598,32 @@ export class FlowStore {
     this.commit();
   }
 
-  /** Replace the whole graph (used by controlled mode and loadSnapshot). */
+  /**
+   * Diff-sync the whole graph (used by controlled mode and loadSnapshot).
+   * Unchanged elements are left untouched, so selection, measured sizes and
+   * fine-grained subscriptions survive a controlled-props round trip.
+   */
   setGraph(nodes: Node[], edges: Edge[]): void {
     this.recording = false;
     this.batch(() => {
-      for (const id of [...this.nodeOrder]) this._removeNode(id);
-      for (const id of [...this.edgeOrder]) this._removeEdge(id);
-      for (const n of nodes) this._insertNode({ ...n });
-      for (const e of edges) this._insertEdge({ ...e });
+      const nextNodeIds = new Set(nodes.map((n) => n.id));
+      const nextEdgeIds = new Set(edges.map((e) => e.id));
+      for (const id of [...this.edgeOrder]) {
+        if (!nextEdgeIds.has(id)) this._removeEdge(id);
+      }
+      for (const id of [...this.nodeOrder]) {
+        if (!nextNodeIds.has(id)) this._removeNode(id);
+      }
+      for (const n of nodes) {
+        const prev = this.nodes.get(n.id);
+        if (!prev) this._insertNode({ ...n });
+        else if (prev !== n) this._replaceNode({ ...n });
+      }
+      for (const e of edges) {
+        const prev = this.edges.get(e.id);
+        if (!prev) this._insertEdge({ ...e });
+        else if (prev !== e) this._replaceEdge({ ...e });
+      }
       this.emit('selection');
     });
     this.recording = true;
@@ -603,9 +648,10 @@ export class FlowStore {
 
   nodeSize(id: string): { width: number; height: number } {
     const n = this.nodes.get(id);
+    const m = this.measured.get(id);
     return {
-      width: n?.width ?? DEFAULT_NODE_WIDTH,
-      height: n?.height ?? DEFAULT_NODE_HEIGHT,
+      width: n?.width ?? m?.width ?? DEFAULT_NODE_WIDTH,
+      height: n?.height ?? m?.height ?? DEFAULT_NODE_HEIGHT,
     };
   }
 
@@ -1311,15 +1357,19 @@ export class FlowStore {
       for (const eid of this.edgeOrder) nextEdges.add(eid);
     }
 
+    // Only swap the exposed sets when membership changed, so renderers can
+    // use them as useSyncExternalStore snapshots (stable identity).
     const changed =
       this.cullingActive !== active ||
       !setsEqual(nextRoots, this.visibleRoots) ||
       !setsEqual(nextEdges, this.visibleEdges);
     this.visibleNodes = nextNodes;
-    this.visibleRoots = nextRoots;
-    this.visibleEdges = nextEdges;
     this.cullingActive = active;
-    if (changed) this.emit('visible');
+    if (changed) {
+      this.visibleRoots = nextRoots;
+      this.visibleEdges = nextEdges;
+      this.emit('visible');
+    }
   }
 
   // ── serialization ─────────────────────────────────────────────────────
