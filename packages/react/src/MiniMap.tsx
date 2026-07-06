@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import type { Rect } from '@reflow/core';
 import { rectUnion, visibleRect } from '@reflow/core';
@@ -13,7 +13,18 @@ export interface MiniMapProps {
   interactive?: boolean;
 }
 
-/** Overview map with viewport indicator and drag-to-navigate. */
+interface MapTransform {
+  scale: number;
+  wx: number;
+  wy: number;
+  ox: number;
+  oy: number;
+}
+
+/**
+ * Overview map with drag-to-navigate. Renders on a canvas, so even
+ * 10,000-node flows repaint in ~a millisecond — no per-node React elements.
+ */
 export const MiniMap = memo(function MiniMap({
   position = 'bottom-right',
   width = 200,
@@ -21,52 +32,107 @@ export const MiniMap = memo(function MiniMap({
   interactive = true,
 }: MiniMapProps) {
   const store = useFlowStore();
-  const [, setTick] = useState(0);
-  const rafRef = useRef<number | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const transform = useRef<MapTransform>({ scale: 1, wx: 0, wy: 0, ox: 0, oy: 0 });
 
-  // Coalesce graph + viewport changes into one repaint per frame.
   useEffect(() => {
-    const bump = (): void => {
-      if (rafRef.current != null) return;
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = null;
-        setTick((t) => t + 1);
-      });
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const dpr = typeof devicePixelRatio === 'number' ? devicePixelRatio : 1;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+
+    let raf: number | null = null;
+    const draw = (): void => {
+      raf = null;
+      const styles = getComputedStyle(canvas);
+      const nodeColor = styles.getPropertyValue('--rf-minimap-node').trim() || 'rgba(0,0,0,0.14)';
+      const accent = styles.getPropertyValue('--rf-accent').trim() || '#6366f1';
+      const mask = styles.getPropertyValue('--rf-minimap-mask').trim() || 'rgba(99,102,241,0.08)';
+
+      const view = visibleRect(store.viewport, store.screen.width || 1, store.screen.height || 1);
+      let bounds: Rect | null = null;
+      const rects: { rect: Rect; selected: boolean }[] = [];
+      for (const id of store.nodeOrder) {
+        const node = store.nodes.get(id)!;
+        if (node.hidden) continue;
+        const rect = store.nodeRect(id);
+        rects.push({ rect, selected: !!node.selected });
+        bounds = rectUnion(bounds, rect);
+      }
+      const world = rectUnion(bounds, view);
+      const pad = 20;
+      const wx = world.x - pad;
+      const wy = world.y - pad;
+      const ww = world.width + pad * 2;
+      const wh = world.height + pad * 2;
+      const scale = Math.min(width / ww, height / wh);
+      const ox = (width - ww * scale) / 2;
+      const oy = (height - wh * scale) / 2;
+      transform.current = { scale, wx, wy, ox, oy };
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.fillStyle = nodeColor;
+      let selectedRects: Rect[] | null = null;
+      for (const { rect, selected } of rects) {
+        if (selected) {
+          (selectedRects ??= []).push(rect);
+          continue;
+        }
+        ctx.fillRect(
+          (rect.x - wx) * scale + ox,
+          (rect.y - wy) * scale + oy,
+          Math.max(rect.width * scale, 1.5),
+          Math.max(rect.height * scale, 1.2)
+        );
+      }
+      if (selectedRects) {
+        ctx.fillStyle = accent;
+        for (const rect of selectedRects) {
+          ctx.fillRect(
+            (rect.x - wx) * scale + ox,
+            (rect.y - wy) * scale + oy,
+            Math.max(rect.width * scale, 1.5),
+            Math.max(rect.height * scale, 1.2)
+          );
+        }
+      }
+
+      // Viewport indicator.
+      ctx.fillStyle = mask;
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 1.2;
+      const vx = (view.x - wx) * scale + ox;
+      const vy = (view.y - wy) * scale + oy;
+      ctx.fillRect(vx, vy, view.width * scale, view.height * scale);
+      ctx.strokeRect(vx, vy, view.width * scale, view.height * scale);
     };
-    const unsubs = [store.subscribe('graph', bump), store.subscribe('viewport', bump)];
+
+    const schedule = (): void => {
+      if (raf == null) raf = requestAnimationFrame(draw);
+    };
+    draw();
+    const unsubs = [
+      store.subscribe('graph', schedule),
+      store.subscribe('viewport', schedule),
+      store.subscribe('selection', schedule),
+    ];
     return () => {
       unsubs.forEach((u) => u());
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      if (raf != null) cancelAnimationFrame(raf);
     };
-  }, [store]);
-
-  const view = visibleRect(store.viewport, store.screen.width || 1, store.screen.height || 1);
-  let bounds: Rect | null = null;
-  const rects: { id: string; rect: Rect; selected: boolean }[] = [];
-  for (const id of store.nodeOrder) {
-    const node = store.nodes.get(id)!;
-    if (node.hidden || node.parentId) continue;
-    const rect = store.nodeRect(id);
-    rects.push({ id, rect, selected: !!node.selected });
-    bounds = rectUnion(bounds, rect);
-  }
-  const world = rectUnion(bounds, view);
-  const pad = 20;
-  const wx = world.x - pad;
-  const wy = world.y - pad;
-  const ww = world.width + pad * 2;
-  const wh = world.height + pad * 2;
-  const scale = Math.min(width / ww, height / wh);
-  const ox = (width - ww * scale) / 2;
-  const oy = (height - wh * scale) / 2;
-  const tx = (v: number): number => (v - wx) * scale + ox;
-  const ty = (v: number): number => (v - wy) * scale + oy;
+  }, [store, width, height]);
 
   const navigate = useCallback(
-    (e: ReactPointerEvent<SVGSVGElement>): void => {
-      const svg = e.currentTarget.getBoundingClientRect();
-      const fx = (e.clientX - svg.left - ox) / scale + wx;
-      const fy = (e.clientY - svg.top - oy) / scale + wy;
+    (e: ReactPointerEvent<HTMLCanvasElement>): void => {
+      const { scale, wx, wy, ox, oy } = transform.current;
+      const box = e.currentTarget.getBoundingClientRect();
+      const fx = (e.clientX - box.left - ox) / scale + wx;
+      const fy = (e.clientY - box.top - oy) / scale + wy;
       const { zoom } = store.viewport;
       store.setViewport({
         x: store.screen.width / 2 - fx * zoom,
@@ -74,51 +140,35 @@ export const MiniMap = memo(function MiniMap({
         zoom,
       });
     },
-    [store, ox, oy, scale, wx, wy]
+    [store]
   );
 
-  const onPointerDown = (e: ReactPointerEvent<SVGSVGElement>): void => {
+  const onPointerDown = (e: ReactPointerEvent<HTMLCanvasElement>): void => {
     if (!interactive || e.button !== 0) return;
     e.stopPropagation();
-    e.currentTarget.setPointerCapture(e.pointerId);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      /* synthetic events */
+    }
     navigate(e);
   };
-  const onPointerMove = (e: ReactPointerEvent<SVGSVGElement>): void => {
+  const onPointerMove = (e: ReactPointerEvent<HTMLCanvasElement>): void => {
     if (!interactive || e.buttons !== 1) return;
     navigate(e);
   };
 
   return (
     <Panel position={position} className="rf-minimap-panel">
-      <svg
+      <canvas
+        ref={canvasRef}
         className="rf-minimap"
-        width={width}
-        height={height}
+        style={{ width, height }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         role="img"
         aria-label="Mini map"
-      >
-        {rects.map(({ id, rect, selected }) => (
-          <rect
-            key={id}
-            className={`rf-minimap-node${selected ? ' rf-selected' : ''}`}
-            x={tx(rect.x)}
-            y={ty(rect.y)}
-            width={Math.max(rect.width * scale, 2)}
-            height={Math.max(rect.height * scale, 1.5)}
-            rx={1.5}
-          />
-        ))}
-        <rect
-          className="rf-minimap-viewport"
-          x={tx(view.x)}
-          y={ty(view.y)}
-          width={view.width * scale}
-          height={view.height * scale}
-          rx={2}
-        />
-      </svg>
+      />
     </Panel>
   );
 });

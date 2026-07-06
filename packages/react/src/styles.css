@@ -409,6 +409,16 @@
   pointer-events: none;
 }
 
+/* ── level of detail: hide fine detail when zoomed far out ───────────── */
+
+.rf-container[data-rf-lod='1'] .rf-handle {
+  display: none;
+}
+
+.rf-container[data-rf-lod='1'] .rf-edge-label {
+  display: none;
+}
+
 /* ── selection box ───────────────────────────────────────────────────── */
 
 .rf-selection-box {

@@ -3,6 +3,7 @@ import type { CSSProperties, MouseEvent as ReactMouseEvent, PointerEvent as Reac
 import { useFlowStore, NodeIdContext } from './context';
 import { useConfig } from './config';
 import { useFlowSelector } from './hooks';
+import { useMeasurer } from './measure';
 import { DefaultNode, GroupNode, InputNode, OutputNode } from './DefaultNode';
 
 const NO_DRAG_SELECTOR =
@@ -24,21 +25,17 @@ export const NodeView = memo(function NodeView({ id }: { id: string }) {
     dy: number;
   } | null>(null);
 
-  // Measure real size so edges/minimap/culling stay exact.
+  // Measure real size so edges/minimap/culling stay exact. Nodes with an
+  // explicit width AND height skip observation entirely (big win when
+  // mounting thousands of fixed-size nodes).
+  const measurer = useMeasurer();
+  const hasFixedSize = node != null && node.width != null && node.height != null;
   useEffect(() => {
     const el = contentRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const box = entry.borderBoxSize?.[0];
-        const width = box ? box.inlineSize : entry.contentRect.width;
-        const height = box ? box.blockSize : entry.contentRect.height;
-        if (width > 0 && height > 0) store.setNodeSize(id, width, height);
-      }
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [store, id]);
+    if (!el || !measurer || hasFixedSize) return;
+    measurer.observe(el, id);
+    return () => measurer.unobserve(el);
+  }, [measurer, id, hasFixedSize]);
 
   const childIds = useChildIds(id);
 
@@ -62,7 +59,11 @@ export const NodeView = memo(function NodeView({ id }: { id: string }) {
 
     if (current.draggable === false) return;
     const el = e.currentTarget;
-    el.setPointerCapture(e.pointerId);
+    try {
+      el.setPointerCapture(e.pointerId);
+    } catch {
+      /* synthetic events or lost pointers */
+    }
     dragState.current = {
       pointerId: e.pointerId,
       startX: e.clientX,
@@ -103,7 +104,11 @@ export const NodeView = memo(function NodeView({ id }: { id: string }) {
     if (!s || e.pointerId !== s.pointerId) return;
     dragState.current = null;
     if (s.raf != null) cancelAnimationFrame(s.raf);
-    e.currentTarget.releasePointerCapture(e.pointerId);
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      /* already released */
+    }
     if (s.dragging) {
       store.dragBy({ x: s.dx, y: s.dy });
       store.endDrag();

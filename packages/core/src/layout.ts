@@ -592,11 +592,28 @@ export const computeLayout = (
     layoutNodes.push({ id: node.id, width: size.width, height: size.height });
   }
   const idSet = new Set(layoutNodes.map((n) => n.id));
-  const layoutEdges: LayoutEdge[] = [];
-  for (const e of store.getEdges()) {
-    if (idSet.has(e.source) && idSet.has(e.target)) {
-      layoutEdges.push({ source: e.source, target: e.target });
+  // Edges attached to nested children count as edges between their root
+  // ancestors, so groups participate in the layout sensibly.
+  const rootOf = (id: string): string => {
+    let cur = store.getNode(id);
+    let guard = 0;
+    while (cur?.parentId && guard++ < 100) {
+      const parent = store.getNode(cur.parentId);
+      if (!parent) break;
+      cur = parent;
     }
+    return cur?.id ?? id;
+  };
+  const layoutEdges: LayoutEdge[] = [];
+  const seen = new Set<string>();
+  for (const e of store.getEdges()) {
+    const source = idSet.has(e.source) ? e.source : rootOf(e.source);
+    const target = idSet.has(e.target) ? e.target : rootOf(e.target);
+    if (!idSet.has(source) || !idSet.has(target) || source === target) continue;
+    const key = `${source}→${target}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    layoutEdges.push({ source, target });
   }
   switch (type) {
     case 'layered':

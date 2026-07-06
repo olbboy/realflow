@@ -17,6 +17,7 @@ import {
   clamp,
   expandRect,
   fitRect,
+  rectContainsRect,
   rectsIntersect,
   rectUnion,
   sideAnchor,
@@ -103,6 +104,9 @@ export class FlowStore {
   private children = new Map<string, Set<string>>();
   private handles = new Map<string, Map<string, HandleInfo>>();
 
+  /** Per-edge render versions: bumped when the edge object OR the
+   *  geometry it depends on (endpoint nodes, handles) changes. */
+  private edgeVer = new Map<string, number>();
   private listeners = new Map<string, Set<Listener>>();
   private pending = new Set<string>();
   private batchDepth = 0;
@@ -114,6 +118,10 @@ export class FlowStore {
 
   private drag: DragSession | null = null;
   private cullScheduled = false;
+  private cullForced = false;
+  /** Hysteresis: skip viewport-only re-culls while the raw view stays
+   *  inside the last culled region (minus a half-margin buffer). */
+  private lastCullRect: Rect | null = null;
   private vpAnim: number | null = null;
 
   constructor(options: StoreOptions = {}) {
@@ -143,6 +151,16 @@ export class FlowStore {
       set.delete(fn);
       if (set.size === 0) this.listeners.delete(topic);
     };
+  }
+
+  /** Monotonic version for an edge's rendered output. */
+  edgeVersion(id: string): number {
+    return this.edgeVer.get(id) ?? 0;
+  }
+
+  private bumpEdge(id: string): void {
+    this.edgeVer.set(id, (this.edgeVer.get(id) ?? 0) + 1);
+    this.emit(`edge:${id}`);
   }
 
   private bumpNodes(): void {
@@ -336,7 +354,7 @@ export class FlowStore {
     }
     if (edge.selected) this.selectedEdges.add(edge.id);
     this.bumpEdges();
-    this.emit(`edge:${edge.id}`);
+    this.bumpEdge(edge.id);
     this.scheduleCull();
   }
 
@@ -350,7 +368,7 @@ export class FlowStore {
     this.nodeEdges.get(edge.target)?.delete(id);
     this.selectedEdges.delete(id);
     this.bumpEdges();
-    this.emit(`edge:${id}`);
+    this.bumpEdge(id);
   }
 
   private _replaceEdge(edge: Edge): void {
@@ -370,7 +388,7 @@ export class FlowStore {
     this.edges.set(edge.id, edge);
     if (edge.selected) this.selectedEdges.add(edge.id);
     else this.selectedEdges.delete(edge.id);
-    this.emit(`edge:${edge.id}`);
+    this.bumpEdge(edge.id);
   }
 
   /** Re-index a node and notify it plus every edge touching it. */
@@ -379,7 +397,7 @@ export class FlowStore {
     this.emit(`node:${id}`);
     this.emit('graph');
     const edges = this.nodeEdges.get(id);
-    if (edges) for (const eid of edges) this.emit(`edge:${eid}`);
+    if (edges) for (const eid of edges) this.bumpEdge(eid);
     const kids = this.children.get(id);
     if (kids) for (const kid of kids) this.touchNode(kid);
     this.scheduleCull();
@@ -716,7 +734,7 @@ export class FlowStore {
     }
     map.set(info.id, info);
     const edges = this.nodeEdges.get(info.nodeId);
-    if (edges) for (const eid of edges) this.emit(`edge:${eid}`);
+    if (edges) for (const eid of edges) this.bumpEdge(eid);
     this.emit('connection');
   }
 
@@ -1208,7 +1226,7 @@ export class FlowStore {
     }
     this.viewport = next;
     this.emit('viewport');
-    this.scheduleCull();
+    this.scheduleCull(false);
   }
 
   panBy(dx: number, dy: number): void {
@@ -1292,28 +1310,33 @@ export class FlowStore {
 
   // ── culling ───────────────────────────────────────────────────────────
 
-  private scheduleCull(): void {
+  private scheduleCull(force = true): void {
+    this.cullForced = this.cullForced || force;
     if (this.cullScheduled) return;
     this.cullScheduled = true;
     rafSchedule(() => {
       this.cullScheduled = false;
-      this.cull();
+      const forced = this.cullForced;
+      this.cullForced = false;
+      this.cull(forced);
     });
   }
 
   /** Recompute the visible node/edge sets; emits 'visible' on change. */
-  cull(): void {
+  cull(force = true): void {
     const total = this.nodes.size;
     const threshold = 200;
     const active = this.screen.width > 0 && total > threshold;
 
     let nextNodes: Set<string>;
     if (active) {
-      const margin = this.options.cullingMargin ?? 200;
-      const view = expandRect(
-        visibleRect(this.viewport, this.screen.width, this.screen.height),
-        margin
-      );
+      const margin = this.options.cullingMargin ?? 300;
+      const raw = visibleRect(this.viewport, this.screen.width, this.screen.height);
+      if (!force && this.lastCullRect && rectContainsRect(this.lastCullRect, raw)) {
+        return; // still covered by the last cull's overscan
+      }
+      const view = expandRect(raw, margin);
+      this.lastCullRect = expandRect(raw, margin / 2);
       nextNodes = this.spatial.query(view);
       // Selected + dragged nodes always render.
       for (const id of this.selectedNodes) nextNodes.add(id);

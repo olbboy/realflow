@@ -16,6 +16,7 @@ import { FlowStore, rectFromPoints, screenToFlow } from '@reflow/core';
 import type { Edge, Node, Viewport, XY } from '@reflow/core';
 import { FlowContext } from './context';
 import { ConfigContext, ContainerContext } from './config';
+import { MeasureContext, createMeasurer } from './measure';
 import { createApi } from './hooks';
 import { NodesLayer, builtinNodeTypes } from './NodeRenderer';
 import { EdgesLayer } from './EdgeRenderer';
@@ -241,10 +242,20 @@ export const ReFlow = memo(function ReFlow(props: ReFlowProps) {
       if (!el) return;
       const { x, y, zoom } = store.viewport;
       el.style.transform = `translate(${x}px, ${y}px) scale(${zoom})`;
+      // Level-of-detail hint: CSS hides fine details when zoomed far out.
+      const container = containerRef.current;
+      if (container) {
+        const lod = zoom < 0.35 ? '1' : '0';
+        if (container.dataset.rfLod !== lod) container.dataset.rfLod = lod;
+      }
     };
     apply();
     return store.subscribe('viewport', apply);
   }, [store]);
+
+  // One shared ResizeObserver for all nodes in this flow.
+  const measurer = useMemo(() => createMeasurer(store), [store]);
+  useEffect(() => () => measurer.disconnect(), [measurer]);
 
   // ── wheel zoom (non-passive so we can preventDefault) ──────────────────
   useEffect(() => {
@@ -280,7 +291,11 @@ export const ReFlow = memo(function ReFlow(props: ReFlowProps) {
       !readOnly && e.button === 0 && (selectionOnDrag ? !e.altKey : e.shiftKey);
     const wantPan = !wantBox && panOnDrag !== false;
     if (!wantBox && !wantPan) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      /* synthetic events or lost pointers: proceed uncaptured */
+    }
     pane.current = {
       pointerId: e.pointerId,
       mode: wantBox ? 'box' : 'pan',
@@ -336,7 +351,11 @@ export const ReFlow = memo(function ReFlow(props: ReFlowProps) {
     pane.current = null;
     if (s.raf != null) cancelAnimationFrame(s.raf);
     setBoxRect(null);
-    e.currentTarget.releasePointerCapture(e.pointerId);
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      /* already released */
+    }
     if (!s.moved && e.button === 0) {
       // Pane click: clear selection (keep it with shift) and notify.
       if (!e.shiftKey && !readOnly) {
@@ -422,10 +441,12 @@ export const ReFlow = memo(function ReFlow(props: ReFlowProps) {
             onContextMenu={onContextMenu}
             onKeyDown={onKeyDown}
           >
-            <div ref={viewportRef} className="rf-viewport">
-              <EdgesLayer />
-              <NodesLayer />
-            </div>
+            <MeasureContext.Provider value={measurer}>
+              <div ref={viewportRef} className="rf-viewport">
+                <EdgesLayer />
+                <NodesLayer />
+              </div>
+            </MeasureContext.Provider>
             {boxRect ? (
               <div
                 className="rf-selection-box"

@@ -4,6 +4,7 @@ import type { HandleKind, Side } from '@reflow/core';
 import { screenToFlow } from '@reflow/core';
 import { useFlowStore, useNodeId } from './context';
 import { useConfig, useContainer } from './config';
+import { useMeasurer } from './measure';
 
 export interface HandleProps {
   /** 'source' emits connections, 'target' accepts them. */
@@ -47,29 +48,22 @@ export const Handle = memo(function Handle({
   const handleId = id ?? `__${kind}`;
 
   // Measure the handle's center relative to the node origin and register it.
+  // Measurements are queued and flushed in one batched read/write pass.
+  const measurer = useMeasurer();
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
-    const measure = (): void => {
-      const content = el.closest('.rf-node-content');
-      if (!content) return;
-      const zoom = store.viewport.zoom || 1;
-      const hr = el.getBoundingClientRect();
-      const cr = content.getBoundingClientRect();
-      store.registerHandle({
-        id: handleId,
-        nodeId,
-        kind,
-        side: resolvedSide,
-        x: (hr.left + hr.width / 2 - cr.left) / zoom,
-        y: (hr.top + hr.height / 2 - cr.top) / zoom,
-        dataType,
-        maxConnections,
-      });
+    if (!el || !measurer) return;
+    const spec = {
+      id: handleId,
+      nodeId,
+      kind,
+      side: resolvedSide,
+      dataType,
+      maxConnections,
     };
-    measure();
+    measurer.queueHandle(el, spec);
     // Re-measure when this node resizes (its topic fires on size changes).
-    const unsub = store.subscribe(`node:${nodeId}`, measure);
+    const unsub = store.subscribe(`node:${nodeId}`, () => measurer.queueHandle(el, spec));
     return () => {
       unsub();
       // Keep registrations for culled unmounts so offscreen edges stay
@@ -78,7 +72,7 @@ export const Handle = memo(function Handle({
         store.unregisterHandle(nodeId, handleId);
       }
     };
-  }, [store, nodeId, handleId, kind, resolvedSide, dataType, maxConnections]);
+  }, [store, measurer, nodeId, handleId, kind, resolvedSide, dataType, maxConnections]);
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>): void => {
     if (e.button !== 0 || config.readOnly || !connectable) return;
@@ -87,7 +81,11 @@ export const Handle = memo(function Handle({
     e.stopPropagation();
     e.preventDefault();
     const el = ref.current!;
-    el.setPointerCapture(e.pointerId);
+    try {
+      el.setPointerCapture(e.pointerId);
+    } catch {
+      /* synthetic events or lost pointers */
+    }
     store.startConnection(nodeId, handleId, kind);
 
     const toFlow = (clientX: number, clientY: number) => {

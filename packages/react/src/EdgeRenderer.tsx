@@ -13,7 +13,10 @@ const markerUrl = (m?: EdgeMarker): string | undefined =>
 export const EdgeView = memo(function EdgeView({ id }: { id: string }) {
   const store = useFlowStore();
   const config = useConfig();
-  const edge = useFlowSelector([`edge:${id}`], () => store.edges.get(id));
+  // Subscribe to the edge's render version: it bumps when the edge object
+  // changes AND when its endpoints move/resize (geometry dependencies).
+  useFlowSelector([`edge:${id}`], () => store.edgeVersion(id));
+  const edge = store.edges.get(id);
   if (!edge || edge.hidden) return null;
   const geo = store.edgeGeometry(edge);
   if (!geo) return null;
