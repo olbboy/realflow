@@ -86,6 +86,9 @@ export interface ReFlowProps {
   /** Disable all interactions (view-only). */
   readOnly?: boolean;
   panOnDrag?: boolean;
+  /** Figma-style trackpad mode: wheel/two-finger scroll pans, ctrl/cmd
+   *  (or pinch gesture) zooms. Default false (wheel zooms). */
+  panOnScroll?: boolean;
   zoomOnScroll?: boolean;
   zoomOnDoubleClick?: boolean;
   /** Box-select with plain drag instead of shift+drag. */

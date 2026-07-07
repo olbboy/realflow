@@ -7,6 +7,7 @@ import { Panel, type PanelPosition } from './Panel';
 
 export interface MiniMapProps {
   position?: PanelPosition;
+  className?: string;
   width?: number;
   height?: number;
   /** Click/drag the minimap to navigate. Default true. */
@@ -30,6 +31,7 @@ export const MiniMap = memo(function MiniMap({
   width = 200,
   height = 140,
   interactive = true,
+  className,
 }: MiniMapProps) {
   const store = useFlowStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -159,7 +161,7 @@ export const MiniMap = memo(function MiniMap({
   };
 
   return (
-    <Panel position={position} className="rf-minimap-panel">
+    <Panel position={position} className={`rf-minimap-panel${className ? ` ${className}` : ''}`}>
       <canvas
         ref={canvasRef}
         className="rf-minimap"

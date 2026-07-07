@@ -78,6 +78,7 @@ export const ReFlow = memo(function ReFlow(props: ReFlowProps) {
     historyLimit,
     readOnly = false,
     panOnDrag = true,
+    panOnScroll = false,
     zoomOnScroll = true,
     zoomOnDoubleClick = true,
     selectionOnDrag = false,
@@ -104,6 +105,9 @@ export const ReFlow = memo(function ReFlow(props: ReFlowProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const pane = useRef<PaneSession | null>(null);
+  /** Active touch pointers on the pane; two of them = pinch zoom. */
+  const touches = useRef(new Map<number, XY>());
+  const pinch = useRef<{ startDist: number; startZoom: number; startFlowMid: XY } | null>(null);
   const [boxRect, setBoxRect] = useState<{ x: number; y: number; w: number; h: number } | null>(
     null
   );
@@ -262,18 +266,28 @@ export const ReFlow = memo(function ReFlow(props: ReFlowProps) {
     const el = containerRef.current;
     if (!el) return;
     const onWheel = (e: WheelEvent): void => {
+      let dy = e.deltaY;
+      let dx = e.deltaX;
+      if (e.deltaMode === 1) {
+        dy *= 16;
+        dx *= 16;
+      }
+      if (panOnScroll && !e.ctrlKey && !e.metaKey) {
+        // Figma-style: scroll pans, pinch/ctrl+scroll zooms.
+        e.preventDefault();
+        store.panBy(-dx, -dy);
+        return;
+      }
       if (!zoomOnScroll && !e.ctrlKey) return;
       e.preventDefault();
       const rect = el.getBoundingClientRect();
       const pivot = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-      let delta = e.deltaY;
-      if (e.deltaMode === 1) delta *= 16;
-      const factor = Math.exp(-delta * (e.ctrlKey ? 0.0075 : 0.002));
+      const factor = Math.exp(-dy * (e.ctrlKey ? 0.0075 : 0.002));
       store.zoomBy(factor, pivot);
     };
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
-  }, [store, zoomOnScroll]);
+  }, [store, zoomOnScroll, panOnScroll]);
 
   // ── pane interactions: pan, box-select, click ───────────────────────────
   const clientToFlow = (clientX: number, clientY: number): XY => {
@@ -284,8 +298,56 @@ export const ReFlow = memo(function ReFlow(props: ReFlowProps) {
     );
   };
 
+  const containerPoint = (clientX: number, clientY: number): XY => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    return { x: clientX - (rect?.left ?? 0), y: clientY - (rect?.top ?? 0) };
+  };
+
+  const beginPinch = (): void => {
+    const pts = [...touches.current.values()];
+    if (pts.length < 2) return;
+    pane.current = null; // pinch cancels pan/box-select
+    setBoxRect(null);
+    const mid = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
+    pinch.current = {
+      startDist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1,
+      startZoom: store.viewport.zoom,
+      startFlowMid: screenToFlow(mid, store.viewport),
+    };
+  };
+
+  const movePinch = (): void => {
+    const p = pinch.current;
+    const pts = [...touches.current.values()];
+    if (!p || pts.length < 2) return;
+    const mid = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
+    const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
+    const minZoom = store.options.minZoom ?? 0.1;
+    const maxZoom = store.options.maxZoom ?? 2.5;
+    const zoom = Math.min(maxZoom, Math.max(minZoom, p.startZoom * (dist / p.startDist)));
+    // Keep the flow point that started under the fingers' midpoint anchored.
+    store.setViewport({
+      x: mid.x - p.startFlowMid.x * zoom,
+      y: mid.y - p.startFlowMid.y * zoom,
+      zoom,
+    });
+  };
+
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>): void => {
     containerRef.current?.focus({ preventScroll: true });
+    if (e.pointerType === 'touch') {
+      touches.current.set(e.pointerId, containerPoint(e.clientX, e.clientY));
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        /* synthetic events */
+      }
+      if (touches.current.size === 2) {
+        beginPinch();
+        return;
+      }
+      if (touches.current.size > 2) return;
+    }
     if (e.button !== 0 && e.button !== 1) return;
     const wantBox =
       !readOnly && e.button === 0 && (selectionOnDrag ? !e.altKey : e.shiftKey);
@@ -310,6 +372,13 @@ export const ReFlow = memo(function ReFlow(props: ReFlowProps) {
   };
 
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>): void => {
+    if (e.pointerType === 'touch' && touches.current.has(e.pointerId)) {
+      touches.current.set(e.pointerId, containerPoint(e.clientX, e.clientY));
+      if (pinch.current) {
+        movePinch();
+        return;
+      }
+    }
     const s = pane.current;
     if (!s || e.pointerId !== s.pointerId) return;
     s.lastClient = { x: e.clientX, y: e.clientY };
@@ -346,6 +415,15 @@ export const ReFlow = memo(function ReFlow(props: ReFlowProps) {
   };
 
   const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>): void => {
+    if (e.pointerType === 'touch') {
+      touches.current.delete(e.pointerId);
+      if (pinch.current) {
+        // End pinch; the remaining finger must lift and re-touch to pan
+        // (prevents a jump when one finger leaves).
+        if (touches.current.size < 2) pinch.current = null;
+        return;
+      }
+    }
     const s = pane.current;
     if (!s || e.pointerId !== s.pointerId) return;
     pane.current = null;

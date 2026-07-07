@@ -371,6 +371,7 @@ export class FlowStore {
     this.selectedEdges.delete(id);
     this.bumpEdges();
     this.bumpEdge(id);
+    this.edgeVer.delete(id);
   }
 
   private _replaceEdge(edge: Edge): void {

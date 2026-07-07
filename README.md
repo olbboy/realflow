@@ -32,6 +32,7 @@ add-on:
 | Pan / zoom | ✅ Direct DOM transform — **zero** React renders | ⚠️ Renders through the store |
 | MiniMap | ✅ Canvas — 10k nodes ≈ 1 ms per repaint | ⚠️ One SVG React element per node |
 | Typed ports | ✅ `dataType` + `maxConnections` on handles, cycle prevention | ⚠️ Single `isValidConnection` callback |
+| AI-agent integration | ✅ JSON operations + validated executor, LLM tool schema, graph→Mermaid | ❌ DIY |
 | Graph algorithms | ✅ Topo sort, cycle detect, components, shortest path, ancestors | ⚠️ `getIncomers` / `getOutgoers` |
 | State management | ✅ `useReflow()` — no reducers, no change handlers | ⚠️ `onNodesChange` + `applyNodeChanges` boilerplate |
 | Headless core | ✅ `@reflow/core` — zero dependencies, runs anywhere | ⚠️ `@xyflow/system` (depends on d3-zoom/d3-drag) |
@@ -177,6 +178,30 @@ Handles are measured automatically — put them anywhere in your markup and
 edges anchor exactly. Custom edges get precomputed geometry
 (`path`, `labelX/Y`, endpoints) as props.
 
+### 🤖 Built for the AI era
+
+An LLM can drive the canvas through a validated JSON operation format —
+with a ready-made tool schema and prompt fragment:
+
+```ts
+import { applyOperations, operationSchema, OPERATIONS_PROMPT, describeGraph, toMermaid } from '@reflow/core';
+
+// agent emits ops via tool-calling…
+applyOperations(flow.store, [
+  { op: 'add_node', id: 'retry', label: 'Retry (3x)' },
+  { op: 'connect', source: 'fetch', target: 'retry' },
+  { op: 'set_status', id: 'fetch', status: 'running', message: 'batch 4/12' },
+]); // never throws — errors are collected; one batch = one ⌘Z
+
+describeGraph(store); // compact JSON for the model's context
+toMermaid(store);     // or Mermaid — the cheapest tokens you'll spend
+```
+
+Auto-layout places position-less nodes, `set_status` animates live
+execution, and the same zero-dependency engine validates agent output
+server-side before it reaches a client. See the **AI copilot** demo tab and
+[docs/ai-integration.md](./docs/ai-integration.md).
+
 ### 🗂 Subflows & groups
 
 `parentId` nests nodes; children move with their parent for free (one
@@ -200,8 +225,10 @@ Controlled *or* uncontrolled modes · box selection · keyboard shortcuts
 (delete, select-all, arrow-nudge) · edge labels & markers · animated edges ·
 `bezier` / `smoothstep` / `step` / `straight` paths · MiniMap
 drag-to-navigate · `fitView`/`centerNode` with smooth animation ·
-save/restore snapshots · SSR-safe · touch support via pointer events ·
-level-of-detail rendering when zoomed out.
+save/restore snapshots · SSR-safe · touch support with two-finger pinch
+zoom · `panOnScroll` trackpad mode (Figma-style) · level-of-detail
+rendering when zoomed out · works with Tailwind, shadcn/ui, Radix, Base UI,
+MUI ([integration guide](./docs/integrations.md)).
 
 ## Packages
 
@@ -231,6 +258,8 @@ node scripts/e2e-smoke.mjs  # browser smoke test (requires `npm run dev` on :519
 
 - [Getting started](./docs/getting-started.md)
 - [Custom nodes & edges](./docs/custom-nodes.md)
+- [AI agent integration](./docs/ai-integration.md)
+- [Tailwind / shadcn / Radix / Base UI](./docs/integrations.md)
 - [Performance guide](./docs/performance.md)
 - [Core concepts & API](./docs/api.md)
 

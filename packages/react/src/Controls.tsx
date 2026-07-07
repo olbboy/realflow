@@ -11,6 +11,7 @@ const Icon = ({ d }: { d: string }): React.JSX.Element => (
 
 export interface ControlsProps {
   position?: PanelPosition;
+  className?: string;
   /** Show undo/redo buttons (built-in history). Default true. */
   showUndoRedo?: boolean;
   showZoom?: boolean;
@@ -21,6 +22,7 @@ export interface ControlsProps {
 /** Zoom / fit / undo / redo buttons with keyboard-consistent behavior. */
 export const Controls = memo(function Controls({
   position = 'bottom-left',
+  className,
   showUndoRedo = true,
   showZoom = true,
   showFitView = true,
@@ -29,7 +31,7 @@ export const Controls = memo(function Controls({
   const api = useReflow();
   const { canUndo, canRedo, undo, redo } = useHistory();
   return (
-    <Panel position={position} className="rf-controls">
+    <Panel position={position} className={`rf-controls${className ? ` ${className}` : ''}`}>
       {showZoom ? (
         <>
           <button type="button" className="rf-control-btn" title="Zoom in" aria-label="Zoom in" onClick={() => api.zoomIn()}>

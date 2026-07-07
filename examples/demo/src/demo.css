@@ -269,3 +269,140 @@ body,
   top: 50%;
   margin-top: -5px;
 }
+
+/* ── AI copilot scene ──────────────────────────────────────────────── */
+
+.agent-node {
+  position: relative;
+  min-width: 170px;
+  padding: 11px 14px;
+  background: var(--rf-node-bg);
+  border: 1px solid var(--rf-node-border);
+  border-radius: 10px;
+  box-shadow: var(--rf-node-shadow);
+  font-size: 13px;
+  transition:
+    border-color 150ms ease,
+    box-shadow 200ms ease;
+}
+
+.agent-node.agent-running {
+  border-color: var(--rf-accent);
+  box-shadow:
+    0 0 0 3px var(--rf-accent-soft),
+    var(--rf-node-shadow);
+}
+
+.agent-node.agent-error {
+  border-color: #f43f5e;
+  box-shadow:
+    0 0 0 3px rgba(244, 63, 94, 0.16),
+    var(--rf-node-shadow);
+}
+
+.rf-node.rf-selected > .rf-node-content > .agent-node {
+  border-color: var(--rf-accent);
+  box-shadow:
+    0 0 0 3px var(--rf-accent-soft),
+    var(--rf-node-shadow-hover);
+}
+
+.agent-node-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 620;
+}
+
+.agent-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--rf-node-border-hover);
+  flex: none;
+}
+
+.agent-dot-running {
+  background: var(--rf-accent);
+  animation: agent-pulse 0.9s ease-in-out infinite;
+}
+
+.agent-dot-ok {
+  background: #10b981;
+}
+
+.agent-dot-error {
+  background: #f43f5e;
+}
+
+@keyframes agent-pulse {
+  50% {
+    box-shadow: 0 0 0 5px var(--rf-accent-soft);
+  }
+}
+
+.agent-node-msg {
+  margin-top: 4px;
+  padding-left: 17px;
+  font-size: 11px;
+  color: var(--rf-node-text-dim);
+}
+
+.agent-chat {
+  flex-direction: column;
+  gap: 8px;
+  width: 250px;
+  max-height: 70%;
+  overflow-y: auto;
+  background: var(--rf-panel-bg);
+  border: 1px solid var(--rf-panel-border);
+  border-radius: 12px;
+  box-shadow: var(--rf-panel-shadow);
+  backdrop-filter: blur(12px);
+  padding: 12px 14px;
+  font-size: 12.5px;
+}
+
+.agent-chat-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.agent-chat-title {
+  font-weight: 700;
+}
+
+.agent-chat-replay {
+  font: inherit;
+  font-size: 11.5px;
+  border: 1px solid var(--rf-panel-border);
+  background: transparent;
+  color: inherit;
+  border-radius: 7px;
+  padding: 3px 9px;
+  cursor: pointer;
+}
+
+.agent-chat-replay:hover:not(:disabled) {
+  background: var(--rf-accent-soft);
+  color: var(--rf-accent);
+}
+
+.agent-chat-replay:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.agent-chat-msg {
+  color: var(--rf-node-text);
+  line-height: 1.45;
+  animation: agent-msg-in 260ms ease;
+}
+
+@keyframes agent-msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
