@@ -7,7 +7,7 @@ reproducible measurement. Gaps are listed plainly, not hidden.
 
 | Requirement | Status | Evidence |
 | --- | --- | --- |
-| npm-publishable (exports/types/sideEffects/peerDeps, semver) | ✅ | `npm pack --dry-run` clean for core/react/compat; `API_STABILITY.md`; `CHANGELOG.md` |
+| npm-publishable (exports/types/sideEffects/peerDeps, semver) | ⚠️→✅ | `npm pack --dry-run` clean for core/react/compat; `API_STABILITY.md`; `CHANGELOG.md`. **Fixed a real blocker**: built ESM used extensionless imports so `import '@reflow/core'` failed under native Node (bundlers hid it); post-build `.js`-extension codemod + a CI step that `import()`s each built package now guard it. |
 | CI: typecheck + tests + build | ✅ | `.github/workflows/ci.yml` (build, typecheck, test, demo build, pack verify) |
 | Head-to-head benchmark, reproducible, prod builds, both actually pan | ✅ | `npm run bench` → `benchmarks/BENCHMARKS.md`; movement-verified. **Portability bug fixed** (`run.mjs` had a hard-coded CI-only browser path that made `npm run bench` fail on any other machine). Re-run locally: ReFlow wins the edit scenario 120 vs 21 fps @10k, ~14× less heap. |
 | `applyOperations` fuzz test (never-throw) | ✅ | `packages/core/test/ops-fuzz.test.ts` — 30 seeds × hostile input, proto-pollution guard. **Caught 3 real bugs**: two spatial-index infinite-loop DoS (huge dimension / extreme coordinate) and Symbol→number throws — all fixed + regression-tested. |
@@ -40,12 +40,14 @@ isolation is still untested (noted as a future item).
 | --- | --- | --- |
 | JSON ops with public schema, validate + reject safely | ✅ | `packages/core/src/ops.ts` `operationSchema`; fuzz-tested |
 | Streaming ops → incremental canvas update (no full re-render) | ✅ | `applyOperations(..., {transact:false})`; per-node fine-grained rendering; demo `AIScene.tsx` streams |
-| E2E: an AI Assistant generates a workflow → live render + transactional undo | 🟡 | Demo streams a scripted agent building a live pipeline with per-node status + undo. A **live** Anthropic `/v1/messages` call is documented (`docs/ai-integration.md`) but not wired into CI (needs an API key). |
-| AI integration guide + tool-schema for first-try correctness | ✅ | `docs/ai-integration.md` + `OPERATIONS_PROMPT` + `operationSchema`; `llms.txt` at repo root |
+| E2E: an AI Assistant generates a workflow → live render + transactional undo | ✅ verified live | `examples/ai-agent` — provider-agnostic bridge (**GLM / Gemini / Anthropic**, chosen by env key). **Verified live against Gemini `gemini-2.5-flash`**: from a natural-language goal it produced 6 ops, applied 5, one malformed op was safely rejected (never threw), and a single `undo()` reverted the whole turn. `test/agent-ops.test.ts` (12 tests, in `npm test`) proves parse→validate→apply→undo for all three provider response shapes with canned data. Keyed round-trip is CLI/manual, not CI (needs a secret). |
+| AI integration guide + tool-schema for first-try correctness | ✅ | `docs/ai-integration.md` (incl. the provider-agnostic guide) + `OPERATIONS_PROMPT` + `operationSchema`; `llms.txt` at repo root |
 
-Gate C: **met** for the shippable surface. The only softness is a *live*
-API-key E2E, which is impractical in CI; the operation layer it would call is
-fully tested and the pattern is documented + demoed.
+Gate C: **met.** The operation layer is fuzz-tested; a provider-agnostic live
+agent (GLM/Gemini/Anthropic) generates and applies operations with
+transactional undo, verified end-to-end with canned responses in CI and by a
+keyed CLI locally. The only thing not in CI is the *keyed* network call itself
+(needs a secret) — everything it depends on is tested.
 
 ## Tier 2 parity (React Flow features ReFlow was missing)
 
@@ -74,8 +76,9 @@ Tier 2: **complete.**
 
 - CI lint step — the repo has no ESLint config, so CI doesn't lint (typecheck
   is strict, but that's not the same thing).
-- Live Anthropic `/v1/messages` AI E2E — needs an API key; the JSON op layer it
-  calls is fully fuzz-tested and the flow is documented + demoed (scripted). ❌
+- The *keyed* AI round-trip isn't in CI (needs a secret). It runs locally via
+  `examples/ai-agent/generate.mjs` with a GLM/Gemini/Anthropic key; the whole
+  pipeline around it is unit-tested with canned responses.
 - Live *hosted* docs site — the site exists and builds; it isn't deployed to a URL here.
 - Shadow-DOM isolation for nodes — untested.
 - Overview-mode (all-nodes-visible) pan is paint-bound under software rendering

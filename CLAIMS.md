@@ -43,7 +43,7 @@ Legend: ✅ HAVE (code + test/measurement) · 🟡 PARTIAL · ❌ MISSING · ⚠
 | Never-throws on bad input | ✅ | `ops.ts` per-op try/catch **plus input sanitization** (finite/clamped numbers, string coercion, array guards); **fuzz test** `ops-fuzz.test.ts` (30 seeds). Caught & fixed 3 real bugs: 2 spatial-index DoS hangs + Symbol→number throws. |
 | LLM tool schema + Mermaid/describeGraph | ✅ | `ops.ts` `operationSchema`, `toMermaid`, `describeGraph`; `ops.test.ts` |
 | Streaming ops incremental | ✅ | `applyOperations(..., {transact:false})`; demo `AIScene.tsx` streams |
-| Real Anthropic Assistant E2E | ❌ | Documented pattern only; no live API E2E (needs a key). Marked honestly in PROGRESS.md |
+| Live LLM → canvas, provider-agnostic | ✅ verified live | `examples/ai-agent` — zero-SDK `fetch` bridge for **GLM / Gemini / Anthropic**, chosen by env key. **Ran live against Gemini `gemini-2.5-flash`**: goal → 6 ops, 5 applied, 1 malformed op rejected without throwing, one `undo()` reverted the whole turn. `test/agent-ops.test.ts` (12 tests) proves the pipeline for all three response shapes with canned data. Keyed round-trip via `generate.mjs`; not in CI (needs a key). GLM adapter reaches the API correctly but the test account returned 429 "insufficient balance". |
 
 ## Ecosystem / compat
 
@@ -51,7 +51,7 @@ Legend: ✅ HAVE (code + test/measurement) · 🟡 PARTIAL · ❌ MISSING · ⚠
 | --- | --- | --- |
 | Works with Tailwind/shadcn/Radix/Base UI | ✅ | Demo has a node built from **real** shadcn/ui Card+Select+Popover (the actual `@radix-ui/react-select`/`react-popover`) and one from **real** `@base-ui-components/react` Select+Popover. `e2e/framework-nodes.spec.ts` — 5 tests × Chromium/Firefox/WebKit prove portals open above the canvas, selecting doesn't pan, and nodes stay draggable. Recipe in `docs/integrations.md`. |
 | React Flow API compat adapter | 🟡→✅ | `@reflow/compat` package + `compat.test.tsx` (see PROGRESS.md) |
-| npm-publishable | ✅ | `npm pack --dry-run` clean for both packages; exports/types/sideEffects set |
+| npm-publishable | ⚠️→✅ | `npm pack --dry-run` clean for all three. **WAS BROKEN for real consumers**: `tsc` (moduleResolution `bundler`) emitted extensionless ESM imports, so `import '@reflow/core'` threw `ERR_MODULE_NOT_FOUND` under native Node — invisible to tests/Vite (which alias to `src`). Fixed with a post-build `.js`-extension codemod + a CI step that actually `import()`s each built package under Node. |
 | CI runs typecheck+test+build | ✅ | `.github/workflows/ci.yml` |
 
 ## Differentiation (Tier 3) — verified this cycle

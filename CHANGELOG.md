@@ -8,6 +8,28 @@ contain breaking changes to APIs marked **experimental** in
 
 ## [Unreleased]
 
+### Added — AI agent (Gate C)
+- **Provider-agnostic live AI bridge** (`examples/ai-agent`). A zero-SDK
+  `fetch` adapter turns a natural-language goal into validated ReFlow
+  operations using whichever key is set — **GLM** (z.ai, `glm-4.6`),
+  **Gemini** (`gemini-2.5-flash`) or **Anthropic** (`claude-sonnet-5`) — and
+  applies them as one transactional turn (a single `undo()` reverts the whole
+  agent edit). `npm run generate -w reflow-ai-agent` / `node
+  examples/ai-agent/generate.mjs "<goal>"`. Twelve tests
+  (`agent-ops.test.ts`) cover parse→validate→apply→undo for all three
+  provider response shapes with canned data; the keyed round-trip runs via the
+  CLI. See `docs/ai-integration.md`.
+
+### Fixed — packaging
+- **Built packages now load under native Node ESM.** `tsc`
+  (`moduleResolution: bundler`) emitted extensionless relative imports, so
+  `import '@reflow/core'` threw `ERR_MODULE_NOT_FOUND` in plain Node even
+  though bundlers (Vite/Vitest) resolved it — the published packages were
+  effectively broken for Node consumers. A post-build codemod
+  (`scripts/append-js-extensions.mjs`) appends `.js` to relative specifiers in
+  the emitted `.js`/`.d.ts`, and CI now `import()`s each built package under
+  Node so this can't regress.
+
 ### Added — UI-framework integration (Gate B)
 - **Real shadcn/ui + Base UI nodes in the demo.** The "UI frameworks" tab now
   renders a node built from actual shadcn/ui Card + Select + Popover (the real
