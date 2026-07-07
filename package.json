@@ -18,7 +18,8 @@
     "bench": "npm run bench -w reflow-benchmarks",
     "dev:docs": "npm run dev -w reflow-docs-site",
     "build:docs": "npm run build -w reflow-docs-site",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --project=chromium --project=firefox --project=webkit --project=mobile-webkit",
+    "test:e2e:visual": "playwright test --project=visual",
     "test:e2e:install": "playwright install"
   },
   "devDependencies": {

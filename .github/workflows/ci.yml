@@ -47,6 +47,30 @@ jobs:
       - name: Run cross-browser + touch E2E matrix
         run: npm run test:e2e
 
+  visual:
+    # Visual snapshots are OS-pinned; baselines are darwin, so run on macOS.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build packages
+        run: npm run build && npm run build -w @reflow/compat
+      - name: Build demo
+        run: npm run build:demo
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium
+      - name: Visual regression (Chromium, darwin baselines)
+        run: npm run test:e2e:visual
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: visual-diff
+          path: test-results/
+
   benchmark:
     runs-on: ubuntu-latest
     # Benchmarks are informational; don't block merges on FPS in CI.
