@@ -72,13 +72,18 @@ test.describe('ReFlow core interactions', () => {
     const before = await page.locator('.rf-edge').count();
     const src = await center(page, `${nodeSel('enrich')} .rf-handle-right`);
     const tgt = await center(page, `${nodeSel('review')} .rf-handle-left`);
+    // WebKit is timing-sensitive here: hover the source handle, press, step off
+    // it to start the connection, approach in small steps, settle on the target
+    // handle, then release. Fewer/larger jumps intermittently miss the target.
     await page.mouse.move(src.x, src.y);
     await page.mouse.down();
-    await page.mouse.move((src.x + tgt.x) / 2, (src.y + tgt.y) / 2, { steps: 8 });
-    await page.mouse.move(tgt.x, tgt.y, { steps: 8 });
+    await page.mouse.move(src.x + 14, src.y, { steps: 5 });
+    await page.mouse.move((src.x + tgt.x) / 2, (src.y + tgt.y) / 2, { steps: 14 });
+    await page.mouse.move(tgt.x, tgt.y, { steps: 14 });
+    await page.mouse.move(tgt.x, tgt.y); // settle precisely on the target handle
     await page.mouse.up();
     await expect
-      .poll(() => page.locator('.rf-edge').count(), { timeout: 4000 })
+      .poll(() => page.locator('.rf-edge').count(), { timeout: 5000 })
       .toBe(before + 1);
   });
 
