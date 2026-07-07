@@ -29,6 +29,24 @@ jobs:
           npm pack --dry-run -w @reflow/react
           npm pack --dry-run -w @reflow/compat
 
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build packages
+        run: npm run build && npm run build -w @reflow/compat
+      - name: Build demo
+        run: npm run build:demo
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Run cross-browser + touch E2E matrix
+        run: npm run test:e2e
+
   benchmark:
     runs-on: ubuntu-latest
     # Benchmarks are informational; don't block merges on FPS in CI.

@@ -6,3 +6,6 @@ coverage/
 .vite/
 screenshots/
 scratch*.log
+test-results/
+playwright-report/
+*.tgz
