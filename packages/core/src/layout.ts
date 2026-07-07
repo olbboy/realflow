@@ -647,6 +647,106 @@ export const applyLayout = (store: FlowStore, positions: Positions): void => {
   });
 };
 
+export interface IncrementalOptions {
+  /** Gap kept from existing nodes when placing new ones. Default 40. */
+  gap?: number;
+  /** Preferred offset from a connected neighbor. Default 220 (x), 120 (y). */
+  stepX?: number;
+  stepY?: number;
+}
+
+/**
+ * Position only the given new nodes, leaving the existing graph untouched —
+ * so adding one node doesn't reshuffle the whole diagram. Each new node is
+ * placed next to its already-positioned neighbors (downstream of a source),
+ * then nudged to avoid overlapping existing nodes. Nodes with no positioned
+ * neighbor are dropped into free space below the current bounds.
+ *
+ * Returns the computed positions (does not mutate the store — pair with
+ * `applyLayout`).
+ */
+export const incrementalLayout = (
+  store: FlowStore,
+  newNodeIds: string[],
+  opts: IncrementalOptions = {}
+): Positions => {
+  const gap = opts.gap ?? 40;
+  const stepX = opts.stepX ?? 220;
+  const stepY = opts.stepY ?? 120;
+  const positions: Positions = new Map();
+  const isNew = new Set(newNodeIds);
+
+  // Rects of the existing (already-placed) nodes, for overlap avoidance.
+  const placed: { id: string; x: number; y: number; w: number; h: number }[] = [];
+  let bounds = store.nodesBounds(store.getNodes().filter((n) => !isNew.has(n.id)).map((n) => n.id));
+  for (const node of store.getNodes()) {
+    if (isNew.has(node.id) || node.parentId) continue;
+    const s = store.nodeSize(node.id);
+    placed.push({ id: node.id, x: node.position.x, y: node.position.y, w: s.width, h: s.height });
+  }
+
+  const overlaps = (x: number, y: number, w: number, h: number): boolean => {
+    for (const r of placed) {
+      if (x < r.x + r.w + gap && x + w + gap > r.x && y < r.y + r.h + gap && y + h + gap > r.y) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  let fallbackY = bounds.height > 0 ? bounds.y + bounds.height + stepY : 0;
+  const fallbackX0 = bounds.width > 0 ? bounds.x : 0;
+  let fallbackX = fallbackX0;
+
+  for (const id of newNodeIds) {
+    const node = store.getNode(id);
+    if (!node) continue;
+    const size = store.nodeSize(id);
+
+    // Anchor: average of positioned neighbors, offset downstream.
+    let ax: number | null = null;
+    let ay = 0;
+    let count = 0;
+    for (const e of store.edgesOf(id)) {
+      const otherId = e.source === id ? e.target : e.source;
+      if (isNew.has(otherId)) continue;
+      const other = store.getNode(otherId);
+      if (!other) continue;
+      const os = store.nodeSize(otherId);
+      // Downstream of a source, upstream-left of a target.
+      const dir = e.source === otherId ? 1 : -1;
+      ax = (ax ?? 0) + other.position.x + dir * (os.width + stepX - os.width);
+      ay += other.position.y;
+      count++;
+    }
+
+    let x: number;
+    let y: number;
+    if (ax != null && count > 0) {
+      x = ax / count;
+      y = ay / count;
+    } else {
+      // No positioned neighbor: drop into free space below the graph.
+      x = fallbackX;
+      y = fallbackY;
+      fallbackX += size.width + stepX;
+      if (fallbackX > fallbackX0 + 6 * stepX) {
+        fallbackX = fallbackX0;
+        fallbackY += stepY;
+      }
+    }
+
+    // Nudge downward until it doesn't overlap an existing node.
+    let guard = 0;
+    while (overlaps(x, y, size.width, size.height) && guard++ < 200) {
+      y += size.height + gap;
+    }
+    positions.set(id, { x, y });
+    placed.push({ id, x, y, w: size.width, h: size.height });
+  }
+  return positions;
+};
+
 /** Convenience: compute + apply + optionally fit the view. */
 export const layout = (store: FlowStore, type: LayoutType, opts: LayoutOptions = {}): void => {
   applyLayout(store, computeLayout(store, type, opts));

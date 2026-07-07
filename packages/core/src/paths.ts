@@ -168,6 +168,12 @@ const polylineMidpoint = (pts: XY[]): XY => {
   return pts[pts.length - 1];
 };
 
+/**
+ * Turn an orthogonal polyline (e.g. from `routeOrthogonal`) into a smooth
+ * SVG path with rounded corners, plus a label anchor at its midpoint.
+ */
+export const roundedPath = (pts: XY[], radius = 8): EdgePath => renderRounded(pts, radius);
+
 const renderRounded = (pts: XY[], radius: number): EdgePath => {
   let d = `M ${f(pts[0].x)},${f(pts[0].y)}`;
   for (let i = 1; i < pts.length - 1; i++) {

@@ -99,6 +99,9 @@ export class FlowStore {
   edgesVersion = 0;
   /** Bumped on every committed mutation boundary ('commit' topic). */
   commitVersion = 0;
+  /** Bumped whenever any node geometry changes ('graph' topic) — lets
+   *  obstacle-dependent renderers (orthogonal edges) re-route live. */
+  graphVersion = 0;
 
   screen = { width: 0, height: 0 };
   options: StoreOptions;
@@ -187,6 +190,7 @@ export class FlowStore {
   }
 
   private emit(topic: string): void {
+    if (topic === 'graph') this.graphVersion++;
     if (this.batchDepth > 0) {
       this.pending.add(topic);
       return;
@@ -666,6 +670,33 @@ export class FlowStore {
     this.recording = true;
   }
 
+  /**
+   * Apply a remote collaborative change: upsert/remove specific nodes and
+   * edges WITHOUT recording history and WITHOUT emitting 'commit' (so it
+   * never echoes back through the local broadcast diff). Remote edits aren't
+   * part of your local undo stack — you don't undo a teammate's change.
+   */
+  applyRemotePatch(patch: {
+    nodes?: { upsert?: Node[]; remove?: string[] };
+    edges?: { upsert?: Edge[]; remove?: string[] };
+  }): void {
+    this.recording = false;
+    this.batch(() => {
+      for (const id of patch.edges?.remove ?? []) this._removeEdge(id);
+      for (const id of patch.nodes?.remove ?? []) this._removeNode(id);
+      for (const n of patch.nodes?.upsert ?? []) {
+        if (this.nodes.has(n.id)) this._replaceNode({ ...n });
+        else this._insertNode({ ...n });
+      }
+      for (const e of patch.edges?.upsert ?? []) {
+        if (this.edges.has(e.id)) this._replaceEdge({ ...e });
+        else this._insertEdge({ ...e });
+      }
+    });
+    this.recording = true;
+    this.cull();
+  }
+
   // ── geometry helpers ──────────────────────────────────────────────────
 
   absolutePosition(id: string): XY {
@@ -830,6 +861,29 @@ export class FlowStore {
   handleAnchor(h: HandleInfo): XY {
     const pos = this.absolutePosition(h.nodeId);
     return { x: pos.x + h.x, y: pos.y + h.y };
+  }
+
+  /**
+   * Node rectangles an orthogonal edge should route around: nodes near the
+   * edge's bounding box, excluding the two endpoint nodes. Uses the spatial
+   * index so this stays cheap even with thousands of nodes.
+   */
+  edgeObstacles(edge: Edge, margin = 120): Rect[] {
+    const geo = this.edgeGeometry(edge);
+    if (!geo) return [];
+    const x0 = Math.min(geo.source.x, geo.target.x) - margin;
+    const y0 = Math.min(geo.source.y, geo.target.y) - margin;
+    const x1 = Math.max(geo.source.x, geo.target.x) + margin;
+    const y1 = Math.max(geo.source.y, geo.target.y) + margin;
+    const near = this.spatial.query({ x: x0, y: y0, width: x1 - x0, height: y1 - y0 });
+    const out: Rect[] = [];
+    for (const id of near) {
+      if (id === edge.source || id === edge.target) continue;
+      const n = this.nodes.get(id);
+      if (!n || n.hidden || n.type === 'group') continue;
+      out.push(this.nodeRect(id));
+    }
+    return out;
   }
 
   /** Endpoint geometry for rendering an edge. */

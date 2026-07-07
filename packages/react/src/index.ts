@@ -6,6 +6,7 @@ export { Controls, type ControlsProps } from './Controls';
 export { Panel, type PanelProps, type PanelPosition } from './Panel';
 export { NodeToolbar, type NodeToolbarProps } from './NodeToolbar';
 export { NodeResizer, type NodeResizerProps } from './NodeResizer';
+export { RemoteCursors, type RemoteCursorsProps } from './RemoteCursors';
 export { DefaultNode, InputNode, OutputNode, GroupNode } from './DefaultNode';
 export { NodeView, NodesLayer } from './NodeRenderer';
 export { EdgeView, EdgesLayer } from './EdgeRenderer';

@@ -1,7 +1,7 @@
 import { memo, useRef } from 'react';
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
 import type { EdgeMarker, Side } from '@reflow/core';
-import { edgePath, screenToFlow } from '@reflow/core';
+import { edgePath, roundedPath, routeOrthogonal, screenToFlow } from '@reflow/core';
 import { useFlowStore } from './context';
 import { useConfig, useContainer } from './config';
 import { useConnection, useFlowSelector } from './hooks';
@@ -13,9 +13,14 @@ const markerUrl = (m?: EdgeMarker): string | undefined =>
 export const EdgeView = memo(function EdgeView({ id }: { id: string }) {
   const store = useFlowStore();
   const config = useConfig();
+  // Orthogonal edges depend on OTHER nodes (obstacles), so they must also
+  // re-render on any graph change; normal edges only track their endpoints.
+  const isOrtho = store.edges.get(id)?.type === 'orthogonal';
   // Subscribe to the edge's render version: it bumps when the edge object
   // changes AND when its endpoints move/resize (geometry dependencies).
-  useFlowSelector([`edge:${id}`], () => store.edgeVersion(id));
+  useFlowSelector(isOrtho ? [`edge:${id}`, 'graph'] : [`edge:${id}`], () =>
+    isOrtho ? store.edgeVersion(id) + store.graphVersion : store.edgeVersion(id)
+  );
   const edge = store.edges.get(id);
   if (!edge || edge.hidden) return null;
   const geo = store.edgeGeometry(edge);
@@ -23,12 +28,24 @@ export const EdgeView = memo(function EdgeView({ id }: { id: string }) {
 
   const type = edge.type ?? 'bezier';
   const Custom = config.edgeTypes[type];
-  const { d, label } = edgePath(Custom ? 'bezier' : type, {
-    source: geo.source,
-    sourceSide: geo.sourceSide,
-    target: geo.target,
-    targetSide: geo.targetSide,
-  });
+  const { d, label } =
+    !Custom && type === 'orthogonal'
+      ? roundedPath(
+          routeOrthogonal({
+            source: geo.source,
+            sourceSide: geo.sourceSide,
+            target: geo.target,
+            targetSide: geo.targetSide,
+            obstacles: store.edgeObstacles(edge),
+          }),
+          8
+        )
+      : edgePath(Custom ? 'bezier' : type, {
+          source: geo.source,
+          sourceSide: geo.sourceSide,
+          target: geo.target,
+          targetSide: geo.targetSide,
+        });
 
   const select = (e: ReactPointerEvent): void => {
     if (e.button !== 0) return;
