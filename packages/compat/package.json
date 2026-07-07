@@ -20,7 +20,7 @@
     "*.css"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && cp ../react/src/styles.css dist/style.css"
+    "build": "tsc -p tsconfig.build.json && node ../../scripts/append-js-extensions.mjs dist && cp ../react/src/styles.css dist/style.css"
   },
   "dependencies": {
     "@reflow/core": "0.1.0",

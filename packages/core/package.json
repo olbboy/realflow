@@ -17,7 +17,7 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json && node ../../scripts/append-js-extensions.mjs dist"
   },
   "keywords": [
     "node-based-ui",
