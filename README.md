@@ -216,7 +216,10 @@ toMermaid(store);     // or Mermaid — the cheapest tokens you'll spend
 
 Auto-layout places position-less nodes, `set_status` animates live
 execution, and the same zero-dependency engine validates agent output
-server-side before it reaches a client. See the **AI copilot** demo tab and
+server-side before it reaches a client. It's provider-agnostic:
+[`examples/ai-agent`](./examples/ai-agent) drives the canvas from **GLM,
+Gemini or Anthropic** (whichever key you set) with one transactional undo per
+turn. See the **AI copilot** demo tab and
 [docs/ai-integration.md](./docs/ai-integration.md).
 
 ### 🗂 Subflows & groups

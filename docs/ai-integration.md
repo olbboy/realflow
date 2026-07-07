@@ -150,3 +150,36 @@ const executionOrder = topologicalSort(sim); // schedule the real run
 ```
 
 Same engine, same validation, both sides of the wire.
+
+## Live agent, provider-agnostic (GLM / Gemini / Anthropic)
+
+The operation format is not tied to any one model. `examples/ai-agent` is a
+runnable, zero-SDK bridge (plain `fetch`) that asks whichever provider you
+have a key for and applies the result:
+
+```bash
+# whichever key is set decides the provider
+GLM_API_KEY=...       node examples/ai-agent/generate.mjs "add a retry step after fetch"
+GEMINI_API_KEY=...    node examples/ai-agent/generate.mjs
+ANTHROPIC_API_KEY=... node examples/ai-agent/generate.mjs
+```
+
+Under the hood (`examples/ai-agent/src/providers.mjs`):
+
+- **GLM** (z.ai, OpenAI-compatible) — `POST /chat/completions` with
+  `response_format: { type: 'json_object' }`, model `glm-4.6`.
+- **Gemini** — `:generateContent` with
+  `generationConfig.responseMimeType: 'application/json'`, model
+  `gemini-2.5-flash`.
+- **Anthropic** — `/v1/messages`, model `claude-sonnet-5`.
+
+Each returns a JSON `{ "operations": [...] }`, which is parsed, validated by
+`operationSchema`, and applied via `applyOperations` as one transactional
+turn — so a single `undo()` reverts the whole agent edit. Override the model
+or endpoint per provider with env vars (`GLM_MODEL`, `GEMINI_MODEL`,
+`ANTHROPIC_MODEL`, `*_BASE_URL`), or force a provider with
+`REFLOW_AI_PROVIDER`.
+
+The parse → validate → apply → undo pipeline is covered by
+`examples/ai-agent/test/agent-ops.test.ts` (canned responses for all three
+providers, no network); the keyed round-trip is exercised by `generate.mjs`.

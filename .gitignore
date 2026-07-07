@@ -9,3 +9,6 @@ scratch*.log
 test-results/
 playwright-report/
 *.tgz
+.env
+.env.*
+!.env.example
