@@ -18,6 +18,28 @@ async function center(page: Page, selector: string) {
   return { x: box.x + box.width / 2, y: box.y + box.height / 2, box };
 }
 
+/**
+ * Drag a node by (dx, dy). WebKit on Linux (Playwright's build, not real
+ * Safari) is picky: it needs the pointer settled before pressing, a small
+ * "prime" nudge to cross the drag threshold, then incremental moves. Grabs the
+ * node near its top-left body, clear of the side handles.
+ */
+async function dragBy(page: Page, selector: string, dx: number, dy: number) {
+  const box = await page.locator(selector).boundingBox();
+  if (!box) throw new Error(`no bounding box for ${selector}`);
+  const sx = box.x + Math.min(40, box.width / 2);
+  const sy = box.y + 12;
+  await page.mouse.move(sx, sy);
+  await page.mouse.down();
+  await page.waitForTimeout(40);
+  await page.mouse.move(sx + 6, sy + 6, { steps: 3 }); // cross the drag threshold
+  await page.mouse.move(sx + dx / 2, sy + dy / 2, { steps: 10 });
+  await page.mouse.move(sx + dx, sy + dy, { steps: 10 });
+  await page.waitForTimeout(40);
+  await page.mouse.up();
+  return box;
+}
+
 test.describe('ReFlow core interactions', () => {
   test('renders the showcase graph', async ({ page }) => {
     await gotoShowcase(page);
@@ -33,37 +55,27 @@ test.describe('ReFlow core interactions', () => {
   test('dragging a node moves it', async ({ page }, testInfo) => {
     test.skip(!!testInfo.project.use.isMobile, 'mouse-drag; touch is covered separately');
     await gotoShowcase(page);
-    const start = await center(page, nodeSel('notify'));
-    // Grab near the top of the node (away from handles) and drag.
-    await page.mouse.move(start.x, start.box.y + 14);
-    await page.mouse.down();
-    await page.mouse.move(start.x + 90, start.box.y + 14 + 110, { steps: 16 });
-    await page.mouse.up();
-
+    const before = await dragBy(page, nodeSel('notify'), 90, 110);
     const end = await page.locator(nodeSel('notify')).boundingBox();
     expect(end).not.toBeNull();
     // Alignment snapping can nudge the exact delta, so assert meaningful motion,
     // not an exact pixel count.
-    expect(end!.x - start.box.x).toBeGreaterThan(30);
-    expect(end!.y - start.box.y).toBeGreaterThan(30);
+    expect(end!.x - before.x).toBeGreaterThan(30);
+    expect(end!.y - before.y).toBeGreaterThan(30);
   });
 
   test('undo restores a dragged node', async ({ page }, testInfo) => {
     test.skip(!!testInfo.project.use.isMobile, 'keyboard undo is desktop-only here');
     await gotoShowcase(page);
-    const start = await center(page, nodeSel('notify'));
-    await page.mouse.move(start.x, start.box.y + 14);
-    await page.mouse.down();
-    await page.mouse.move(start.x + 90, start.box.y + 120, { steps: 12 });
-    await page.mouse.up();
+    const before = await dragBy(page, nodeSel('notify'), 90, 110);
     const moved = await page.locator(nodeSel('notify')).boundingBox();
-    expect(moved!.x - start.box.x).toBeGreaterThan(30);
+    expect(moved!.x - before.x).toBeGreaterThan(30);
 
     await page.keyboard.press('ControlOrMeta+z');
     const restored = await page.locator(nodeSel('notify')).boundingBox();
     // Back within a couple of pixels of where it started.
-    expect(Math.abs(restored!.x - start.box.x)).toBeLessThan(12);
-    expect(Math.abs(restored!.y - start.box.y)).toBeLessThan(12);
+    expect(Math.abs(restored!.x - before.x)).toBeLessThan(12);
+    expect(Math.abs(restored!.y - before.y)).toBeLessThan(12);
   });
 
   test('dragging between handles creates an edge', async ({ page }, testInfo) => {

@@ -76,9 +76,15 @@ test.describe('framework-component nodes', () => {
     const box = await page.locator(shadcn).boundingBox();
     expect(box).not.toBeNull();
     // Grab the card header (title area), away from the controls, and drag.
-    await page.mouse.move(box!.x + 40, box!.y + 12);
+    // Prime + incremental moves so WebKit-on-Linux registers the drag.
+    const sx = box!.x + 40;
+    const sy = box!.y + 12;
+    await page.mouse.move(sx, sy);
     await page.mouse.down();
-    await page.mouse.move(box!.x + 40 + 70, box!.y + 12 + 90, { steps: 12 });
+    await page.waitForTimeout(40);
+    await page.mouse.move(sx + 6, sy + 6, { steps: 3 });
+    await page.mouse.move(sx + 70, sy + 90, { steps: 14 });
+    await page.waitForTimeout(40);
     await page.mouse.up();
     const after = await page.locator(shadcn).boundingBox();
     expect(after!.x - box!.x).toBeGreaterThan(25);
