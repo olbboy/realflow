@@ -112,6 +112,8 @@ export const ReFlow = memo(function ReFlow(props: ReFlowProps) {
     null
   );
   const seeded = useRef(false);
+  const clipboard = useRef<{ nodes: Node[]; edges: Edge[] } | null>(null);
+  const pasteCount = useRef(0);
 
   // Keep store options in sync with props (mutable by design).
   store.options = {
@@ -475,9 +477,43 @@ export const ReFlow = memo(function ReFlow(props: ReFlowProps) {
     } else if (mod && key.toLowerCase() === 'a') {
       e.preventDefault();
       store.selectAll();
+    } else if (mod && key.toLowerCase() === 'c') {
+      if (store.selectedNodes.size > 0) clipboard.current = store.copy();
+    } else if (mod && key.toLowerCase() === 'v') {
+      if (clipboard.current) {
+        e.preventDefault();
+        // Offset each paste so repeated pastes cascade.
+        pasteCount.current += 1;
+        const d = 24 * pasteCount.current;
+        store.paste(clipboard.current, { x: d, y: d });
+      }
+    } else if (mod && key.toLowerCase() === 'd') {
+      if (store.selectedNodes.size > 0) {
+        e.preventDefault();
+        store.duplicateSelection();
+      }
+    } else if (mod && key.toLowerCase() === 'x') {
+      if (store.selectedNodes.size > 0) {
+        clipboard.current = store.copy();
+        pasteCount.current = 0;
+        store.deleteSelection();
+      }
     } else if (key === 'Escape') {
       store.cancelConnection();
       store.clearSelection();
+    } else if (e.altKey && key.startsWith('Arrow') && store.selectedNodes.size > 0) {
+      // Alt+Arrow: spatially navigate the selection to the nearest node.
+      e.preventDefault();
+      const from = [...store.selectedNodes][0];
+      const dir =
+        key === 'ArrowLeft' ? 'left' : key === 'ArrowRight' ? 'right' : key === 'ArrowUp' ? 'up' : 'down';
+      const next = store.nearestNodeInDirection(from, dir);
+      if (next) {
+        store.setSelection([next]);
+        store.centerNode(next, 200);
+        const el = containerRef.current?.querySelector<HTMLElement>(`.rf-node[data-id="${next}"]`);
+        el?.focus({ preventScroll: true });
+      }
     } else if (key.startsWith('Arrow') && store.selectedNodes.size > 0) {
       e.preventDefault();
       const step = (e.shiftKey ? 10 : 1) * Math.max(1, snapGrid);

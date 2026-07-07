@@ -40,6 +40,8 @@ export type FlowOperation =
       data?: Record<string, unknown>;
       position?: XY;
       type?: string;
+      width?: number;
+      height?: number;
     }
   | { op: 'remove_node'; id: string }
   | {
@@ -94,6 +96,34 @@ export interface ApplyOptions {
 
 const asString = (v: unknown): string | undefined => (typeof v === 'string' ? v : undefined);
 
+/** Coerce to a finite number, else undefined — the trust boundary for
+ *  agent/LLM numeric input (a Symbol or huge value must never reach math). */
+const finiteNum = (v: unknown): number | undefined => {
+  const n = typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN;
+  return Number.isFinite(n) ? n : undefined;
+};
+
+/** Clamp a dimension to a sane, bucketable range. */
+const dim = (v: unknown): number | undefined => {
+  const n = finiteNum(v);
+  if (n == null) return undefined;
+  return Math.max(0, Math.min(n, 1e6));
+};
+
+/** Only spread real plain-object data; never a Symbol/array/primitive. */
+const toData = (v: unknown): Record<string, unknown> =>
+  v != null && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
+
+/** A valid {x,y} in a bucketable range, or null. */
+const point = (v: unknown): { x: number; y: number } | null => {
+  if (v == null || typeof v !== 'object') return null;
+  const x = finiteNum((v as { x?: unknown }).x);
+  const y = finiteNum((v as { y?: unknown }).y);
+  if (x == null || y == null) return null;
+  const CAP = 1e9; // far beyond any real canvas; keeps the spatial index sane
+  return { x: Math.max(-CAP, Math.min(x, CAP)), y: Math.max(-CAP, Math.min(y, CAP)) };
+};
+
 /** Apply a batch of agent operations to a store. Never throws. */
 export const applyOperations = (
   store: FlowStore,
@@ -112,22 +142,23 @@ export const applyOperations = (
   const applyOne = (op: FlowOperation, index: number): void => {
     switch (op.op) {
       case 'add_node': {
-        const id = op.id ?? uid('n');
+        const id = typeof op.id === 'string' && op.id !== '' ? op.id : uid('n');
         if (store.nodes.has(id)) return fail(index, op, `node "${id}" already exists`);
-        if (op.parentId && !store.nodes.has(op.parentId)) {
-          return fail(index, op, `parent "${op.parentId}" not found`);
+        const parentId = typeof op.parentId === 'string' ? op.parentId : undefined;
+        if (parentId && !store.nodes.has(parentId)) {
+          return fail(index, op, `parent "${parentId}" not found`);
         }
-        const hasPosition = op.position != null;
+        const pos = point(op.position);
         const node: Node = {
           id,
-          type: op.type,
-          position: op.position ?? { x: cascade * 40, y: cascade * 40 },
-          data: { ...(op.label != null ? { label: op.label } : {}), ...op.data },
-          parentId: op.parentId,
-          width: op.width,
-          height: op.height,
+          type: typeof op.type === 'string' ? op.type : undefined,
+          position: pos ?? { x: cascade * 40, y: cascade * 40 },
+          data: { ...(op.label != null ? { label: op.label } : {}), ...toData(op.data) },
+          parentId,
+          width: dim(op.width),
+          height: dim(op.height),
         };
-        if (!hasPosition) {
+        if (!pos) {
           cascade++;
           needsLayout.push(id);
         }
@@ -139,15 +170,18 @@ export const applyOperations = (
       }
       case 'update_node': {
         const prev = store.getNode(op.id);
-        if (!prev) return fail(index, op, `node "${op.id}" not found`);
+        if (!prev) return fail(index, op, `node "${String(op.id)}" not found`);
         const patch: Partial<Node> = {};
-        if (op.position) patch.position = op.position;
-        if (op.type != null) patch.type = op.type;
-        if (op.data || op.label != null) {
+        const upos = point(op.position);
+        if (upos) patch.position = upos;
+        if (typeof op.type === 'string') patch.type = op.type;
+        if (op.width !== undefined) patch.width = dim(op.width);
+        if (op.height !== undefined) patch.height = dim(op.height);
+        if (op.data != null || op.label != null) {
           patch.data = {
             ...prev.data,
             ...(op.label != null ? { label: op.label } : {}),
-            ...op.data,
+            ...toData(op.data),
           };
         }
         store.updateNode(op.id, patch);
@@ -155,34 +189,31 @@ export const applyOperations = (
         return;
       }
       case 'remove_node': {
-        if (!store.nodes.has(op.id)) return fail(index, op, `node "${op.id}" not found`);
+        if (!store.nodes.has(op.id)) return fail(index, op, `node "${String(op.id)}" not found`);
         store.removeNodes([op.id]);
         structureChanged = true;
         result.applied++;
         return;
       }
       case 'connect': {
-        const verdict = store.validateCandidate({
+        const str = (v: unknown): string | undefined => (typeof v === 'string' ? v : undefined);
+        if (typeof op.source !== 'string' || typeof op.target !== 'string') {
+          return fail(index, op, 'connect requires string source and target');
+        }
+        const candidate = {
           source: op.source,
           target: op.target,
-          sourceHandle: op.sourceHandle,
-          targetHandle: op.targetHandle,
-        });
+          sourceHandle: str(op.sourceHandle),
+          targetHandle: str(op.targetHandle),
+        };
+        const verdict = store.validateCandidate(candidate);
         if (verdict !== true) return fail(index, op, verdict);
-        const edge = store.connect(
-          {
-            source: op.source,
-            target: op.target,
-            sourceHandle: op.sourceHandle,
-            targetHandle: op.targetHandle,
-          },
-          {
-            ...(op.id ? { id: op.id } : {}),
-            ...(op.label != null ? { label: op.label } : {}),
-            ...(op.type != null ? { type: op.type } : {}),
-            ...(op.animated != null ? { animated: op.animated } : {}),
-          }
-        );
+        const edge = store.connect(candidate, {
+          ...(str(op.id) ? { id: str(op.id) } : {}),
+          ...(op.label != null ? { label: String(op.label) } : {}),
+          ...(str(op.type) ? { type: str(op.type) } : {}),
+          ...(op.animated != null ? { animated: !!op.animated } : {}),
+        });
         if (!edge) return fail(index, op, 'connection rejected');
         result.createdEdges.push(edge.id);
         structureChanged = true;
@@ -190,7 +221,7 @@ export const applyOperations = (
         return;
       }
       case 'remove_edge': {
-        if (!store.edges.has(op.id)) return fail(index, op, `edge "${op.id}" not found`);
+        if (!store.edges.has(op.id)) return fail(index, op, `edge "${String(op.id)}" not found`);
         store.removeEdges([op.id]);
         structureChanged = true;
         result.applied++;
@@ -198,51 +229,63 @@ export const applyOperations = (
       }
       case 'update_edge': {
         const prev = store.getEdge(op.id);
-        if (!prev) return fail(index, op, `edge "${op.id}" not found`);
+        if (!prev) return fail(index, op, `edge "${String(op.id)}" not found`);
         const patch: Partial<Edge> = {};
-        if (op.label != null) patch.label = op.label;
-        if (op.animated != null) patch.animated = op.animated;
-        if (op.data) patch.data = { ...prev.data, ...op.data };
+        if (op.label != null) patch.label = String(op.label);
+        if (op.animated != null) patch.animated = !!op.animated;
+        if (op.data != null) patch.data = { ...prev.data, ...toData(op.data) };
         store.updateEdge(op.id, patch);
         result.applied++;
         return;
       }
       case 'set_status': {
         const prev = store.getNode(op.id);
-        if (!prev) return fail(index, op, `node "${op.id}" not found`);
+        if (!prev) return fail(index, op, `node "${String(op.id)}" not found`);
+        const status = asString(op.status) ?? String(op.status);
         store.updateNodeData(op.id, {
-          status: op.status,
-          ...(op.message != null ? { statusMessage: op.message } : {}),
+          status,
+          ...(op.message != null ? { statusMessage: String(op.message) } : {}),
         });
         // Animate edges into a running node for live execution feel.
+        const running = status === 'running';
         for (const e of store.edgesOf(op.id)) {
-          if (e.target === op.id && !!e.animated !== (op.status === 'running')) {
-            store.updateEdge(e.id, { animated: op.status === 'running' });
+          if (e.target === op.id && !!e.animated !== running) {
+            store.updateEdge(e.id, { animated: running });
           }
         }
         result.applied++;
         return;
       }
       case 'select': {
-        store.setSelection(op.nodes ?? [], op.edges ?? []);
+        const ids = (v: unknown): string[] =>
+          Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+        store.setSelection(ids(op.nodes), ids(op.edges));
         result.applied++;
         return;
       }
       case 'layout': {
-        runLayout(store, op.type ?? 'layered', {
-          direction: op.direction,
+        const validTypes = ['layered', 'tree', 'force', 'radial', 'grid'];
+        const type = validTypes.includes(op.type as string) ? (op.type as LayoutType) : 'layered';
+        const dirs = ['LR', 'RL', 'TB', 'BT'];
+        runLayout(store, type, {
+          direction: dirs.includes(op.direction as string) ? (op.direction as LayoutDirection) : undefined,
           duration: options.duration ?? 300,
         });
         result.applied++;
         return;
       }
       case 'fit_view': {
-        store.fitView({ nodes: op.nodes, duration: options.duration ?? 300, padding: 0.15 });
+        const nodes = Array.isArray(op.nodes)
+          ? op.nodes.filter((x): x is string => typeof x === 'string')
+          : undefined;
+        store.fitView({ nodes, duration: options.duration ?? 300, padding: 0.15 });
         result.applied++;
         return;
       }
       case 'focus_node': {
-        if (!store.nodes.has(op.id)) return fail(index, op, `node "${op.id}" not found`);
+        if (typeof op.id !== 'string' || !store.nodes.has(op.id)) {
+          return fail(index, op, `node "${String(op.id)}" not found`);
+        }
         store.centerNode(op.id, options.duration ?? 300);
         result.applied++;
         return;

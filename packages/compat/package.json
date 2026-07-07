@@ -1,0 +1,45 @@
+{
+  "name": "@reflow/compat",
+  "version": "0.1.0",
+  "description": "Drop-in React Flow (xyflow) API compatibility layer for ReFlow. Migrate an existing React Flow app by changing one import.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && cp ../react/src/styles.css dist/style.css"
+  },
+  "dependencies": {
+    "@reflow/core": "0.1.0",
+    "@reflow/react": "0.1.0"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "keywords": [
+    "react-flow",
+    "xyflow",
+    "migration",
+    "compat",
+    "node-based-ui"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/olbboy/reflow.git",
+    "directory": "packages/compat"
+  }
+}

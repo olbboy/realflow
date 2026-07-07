@@ -30,19 +30,34 @@ add-on:
 | Viewport culling | ✅ On by default, spatial-index backed, hysteresis | ⚠️ Opt-in, linear scan |
 | Re-render on drag | ✅ Only the dragged node + its edges | ⚠️ Store-wide change dispatch |
 | Pan / zoom | ✅ Direct DOM transform — **zero** React renders | ⚠️ Renders through the store |
-| MiniMap | ✅ Canvas — 10k nodes ≈ 1 ms per repaint | ⚠️ One SVG React element per node |
+| MiniMap | ✅ Canvas (no per-node React elements) | ⚠️ One SVG React element per node |
 | Typed ports | ✅ `dataType` + `maxConnections` on handles, cycle prevention | ⚠️ Single `isValidConnection` callback |
 | AI-agent integration | ✅ JSON operations + validated executor, LLM tool schema, graph→Mermaid | ❌ DIY |
+| Migration path | ✅ `@reflow/compat` — drop-in React Flow API adapter | — |
+| Copy / paste / duplicate | ✅ Built in (⌘C/V/D/X), id-remapped, one undo | ⚠️ DIY |
+| NodeResizer / NodeToolbar / edge reconnect | ✅ Built in | ✅ (some Pro) |
+| Accessibility | ✅ Focusable nodes, aria, spatial keyboard nav | ⚠️ Partial |
 | Graph algorithms | ✅ Topo sort, cycle detect, components, shortest path, ancestors | ⚠️ `getIncomers` / `getOutgoers` |
 | State management | ✅ `useReflow()` — no reducers, no change handlers | ⚠️ `onNodesChange` + `applyNodeChanges` boilerplate |
 | Headless core | ✅ `@reflow/core` — zero dependencies, runs anywhere | ⚠️ `@xyflow/system` (depends on d3-zoom/d3-drag) |
 | Default look | ✅ Polished theme, dark mode, animations out of the box | ⚠️ Gray boxes |
 | License | ✅ MIT, everything free | MIT + paid Pro examples |
 
-**10,000-node stress test** (dev build, software rendering, 1440×900):
-smooth pan at ~55 fps with ~300 nodes in the DOM. The spatial hash index,
-culling hysteresis and batched measurements keep interaction cost
-proportional to what you *see*, not what you *have*.
+**Head-to-head benchmark vs React Flow** (reproducible: `npm run bench`,
+production builds, identical scenes, Chromium software rendering, every pan
+verified to actually move the viewport — see [BENCHMARKS.md](./benchmarks/BENCHMARKS.md)):
+
+| 10,000 nodes, zoomed-in editing | Pan FPS | DOM nodes | Heap |
+| --- | ---: | ---: | ---: |
+| **ReFlow** | **43** | **143** | **18 MB** |
+| React Flow (default) | 4 | 10,000 | 239 MB |
+| React Flow (`onlyRenderVisibleElements`) | 9 | 49 | 34 MB |
+
+ReFlow culls off-screen nodes **by default** via a spatial hash index, so a
+10k-node graph stays interactive while using **~13× less memory**. When every
+node is genuinely on-screen (zoomed all the way out), both libraries are
+paint-bound and roughly tied — ReFlow stays marginally ahead at half the
+memory. Numbers are honest and reproducible, not marketing.
 
 ## Quick start
 
@@ -230,12 +245,35 @@ zoom · `panOnScroll` trackpad mode (Figma-style) · level-of-detail
 rendering when zoomed out · works with Tailwind, shadcn/ui, Radix, Base UI,
 MUI ([integration guide](./docs/integrations.md)).
 
+### 🔄 Migrating from React Flow?
+
+`@reflow/compat` is a drop-in adapter — change your imports and an existing
+React Flow app runs on ReFlow's engine (undo/redo and culling included, free):
+
+```diff
+- import { ReactFlow, Handle, Position, useReactFlow } from '@xyflow/react';
++ import { ReactFlow, Handle, Position, useReactFlow } from '@reflow/compat';
+```
+
+`useNodesState`, `onNodesChange`/`applyNodeChanges`, `onConnect`, custom
+`nodeTypes`, `<Handle type position>` all keep working. See
+[docs/migration.md](./docs/migration.md).
+
 ## Packages
 
 | Package | What it is |
 | --- | --- |
-| [`@reflow/core`](./packages/core) | Headless engine: store, spatial index, paths, layouts, history, algorithms. Zero dependencies. |
+| [`@reflow/core`](./packages/core) | Headless engine: store, spatial index, paths, layouts, history, algorithms, AI ops. Zero dependencies. |
 | [`@reflow/react`](./packages/react) | React renderer: `<ReFlow>`, components, hooks, theme. Depends only on core + React. |
+| [`@reflow/compat`](./packages/compat) | React Flow (xyflow) API compatibility adapter for migrations. |
+
+## Honesty
+
+Every performance claim here is backed by a reproducible benchmark, and
+every feature by a passing test. [CLAIMS.md](./CLAIMS.md) is a line-by-line
+audit of this README against the code; [PROGRESS.md](./PROGRESS.md) tracks
+what's done vs. what's still missing (orthogonal routing, CRDT collab, and a
+cross-browser test matrix are honestly listed as not-yet-done).
 
 ## Run the demo
 

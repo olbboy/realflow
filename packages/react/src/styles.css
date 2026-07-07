@@ -535,3 +535,77 @@
   stroke: var(--rf-accent);
   stroke-width: 1.2;
 }
+
+/* ── node toolbar ─────────────────────────────────────────────────────── */
+
+.rf-node-toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--rf-panel-bg);
+  border: 1px solid var(--rf-panel-border);
+  border-radius: 9px;
+  box-shadow: var(--rf-panel-shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  white-space: nowrap;
+}
+
+/* ── node resizer ─────────────────────────────────────────────────────── */
+
+.rf-resizer-outline {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--rf-resizer, var(--rf-accent));
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.rf-resizer-handle {
+  width: 9px;
+  height: 9px;
+  background: var(--rf-node-bg);
+  border: 1.5px solid var(--rf-resizer, var(--rf-accent));
+  border-radius: 2px;
+  z-index: 21;
+  touch-action: none;
+}
+
+.rf-resizer-n,
+.rf-resizer-s {
+  border-radius: 3px;
+}
+
+/* ── edge reconnect endpoints ─────────────────────────────────────────── */
+
+.rf-edge-reconnect {
+  fill: var(--rf-node-bg);
+  stroke: var(--rf-accent);
+  stroke-width: 1.5;
+  cursor: grab;
+  pointer-events: all;
+}
+
+.rf-edge-reconnect:hover {
+  fill: var(--rf-accent-soft);
+  r: 6;
+}
+
+/* ── accessibility: keyboard focus ring ───────────────────────────────── */
+
+.rf-node:focus-visible {
+  outline: none;
+}
+
+.rf-node:focus-visible > .rf-node-content::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 12px;
+  box-shadow: 0 0 0 2px var(--rf-bg), 0 0 0 4px var(--rf-accent);
+  pointer-events: none;
+}
+
+.rf-container:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--rf-accent);
+}

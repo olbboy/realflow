@@ -36,6 +36,31 @@ describe('SpatialIndex', () => {
     expect(idx.hit(500, 500)).toEqual([]);
   });
 
+  it('handles degenerate / oversized rects without hanging (DoS guard)', () => {
+    const idx = new SpatialIndex(512);
+    const t0 = performance.now();
+    // A huge finite rect would otherwise make cellKeys iterate ~1e305 cells.
+    idx.set('huge', { x: 0, y: 0, width: 1e308, height: 1e308 });
+    idx.set('nan', { x: NaN, y: 0, width: 100, height: 100 });
+    idx.set('inf', { x: 0, y: 0, width: Infinity, height: 10 });
+    // A normal-sized rect at an extreme coordinate: the cell index exceeds
+    // 2^53 so `index++` can't advance — the subtler hang.
+    idx.set('far', { x: 0, y: -5e307, width: 40, height: 40 });
+    idx.set('normal', { x: 50, y: 50, width: 40, height: 40 });
+    // Moving/removing the huge rect must also be instant.
+    idx.set('huge', { x: 100, y: 100, width: 1e308, height: 1e308 });
+    idx.delete('inf');
+    const ms = performance.now() - t0;
+    expect(ms).toBeLessThan(100);
+    // The oversized rect is still found by an intersecting query.
+    const hit = idx.query({ x: 200, y: 200, width: 50, height: 50 });
+    expect(hit.has('huge')).toBe(true);
+    expect(hit.has('normal')).toBe(false);
+    // Normal rects still work.
+    expect(idx.query({ x: 40, y: 40, width: 20, height: 20 }).has('normal')).toBe(true);
+    expect(idx.hit(120, 120)).toContain('huge');
+  });
+
   it('scales to 10k rects with fast queries', () => {
     const idx = new SpatialIndex(512);
     for (let i = 0; i < 10000; i++) {

@@ -149,6 +149,8 @@ export const NodeView = memo(function NodeView({ id }: { id: string }) {
     ...(node.style as CSSProperties),
   };
 
+  const label = node.ariaLabel ?? (node.data as { label?: string })?.label ?? `node ${id}`;
+
   return (
     <div
       className={`rf-node${node.selected ? ' rf-selected' : ''}${
@@ -157,19 +159,30 @@ export const NodeView = memo(function NodeView({ id }: { id: string }) {
       data-id={id}
       data-type={type}
       style={style}
+      // Accessibility: nodes are focusable and announce themselves. Focusing
+      // selects; arrow keys move the selection (handled by the pane).
+      tabIndex={config.readOnly ? -1 : 0}
+      role="button"
+      aria-label={label}
+      aria-selected={!!node.selected}
+      aria-roledescription="node"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
       onContextMenu={onContextMenu}
+      onFocus={(e) => {
+        // Only react to focus on the node itself, not bubbled from children.
+        if (e.target !== e.currentTarget) return;
+        const cur = store.getNode(id);
+        if (cur && !cur.selected && cur.selectable !== false) store.setSelection([id]);
+      }}
     >
       <div
         ref={contentRef}
         className="rf-node-content"
         style={contentStyle}
-        role="group"
-        aria-label={node.ariaLabel ?? (node.data as { label?: string })?.label ?? `node ${id}`}
       >
         <NodeIdContext.Provider value={id}>
           <Comp id={id} data={node.data} node={node} selected={!!node.selected} dragging={false} />

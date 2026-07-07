@@ -5,3 +5,4 @@ dist/
 coverage/
 .vite/
 screenshots/
+scratch*.log

@@ -1,0 +1,115 @@
+# ReFlow
+
+> The fastest, most complete open-source library for building node-based UIs
+> with React. Headless core (`@reflow/core`, zero deps), React renderer
+> (`@reflow/react`), and a React Flow compatibility adapter (`@reflow/compat`).
+> Culling on by default, built-in undo/redo + auto-layout, and a first-class
+> AI-agent operation layer.
+
+This file helps LLMs generate correct ReFlow code on the first try.
+
+## Install
+
+```
+npm install @reflow/react   # includes @reflow/core
+```
+
+## Minimal app
+
+```tsx
+import { ReFlow, Background, Controls, MiniMap } from '@reflow/react';
+import '@reflow/react/styles.css';
+
+const nodes = [
+  { id: 'a', position: { x: 0, y: 0 }, data: { label: 'Hello' } },
+  { id: 'b', position: { x: 240, y: 80 }, data: { label: 'World' } },
+];
+const edges = [{ id: 'e1', source: 'a', target: 'b', animated: true }];
+
+export default () => (
+  <div style={{ width: '100vw', height: '100vh' }}>
+    <ReFlow defaultNodes={nodes} defaultEdges={edges}>
+      <Background />
+      <Controls />
+      <MiniMap />
+    </ReFlow>
+  </div>
+);
+```
+
+Rules:
+- The container MUST have an explicit size.
+- Prefer `defaultNodes`/`defaultEdges` (uncontrolled) + `useReflow()` over
+  React Flow-style `onNodesChange` boilerplate.
+- Node `data` is arbitrary; `data.label` is shown by the default node.
+
+## Imperative API (useReflow)
+
+```tsx
+const flow = useReflow(); // inside <ReFlow> or <ReFlowProvider>
+flow.addNode({ id, position: { x, y }, data: { label } });
+flow.connect({ source, target });
+flow.updateNodeData(id, { label });
+flow.removeNodes([id]);
+flow.layout('layered');   // 'layered' | 'tree' | 'force' | 'radial' | 'grid'
+flow.fitView({ duration: 300 });
+flow.undo(); flow.redo();
+```
+
+## Custom nodes
+
+```tsx
+import { Handle, type NodeProps } from '@reflow/react';
+function MyNode({ data }: NodeProps<{ label: string }>) {
+  return (
+    <div>
+      <Handle kind="target" side="left" />
+      {data.label}
+      <Handle kind="source" side="right" />
+    </div>
+  );
+}
+// <ReFlow nodeTypes={{ myType: MyNode }} ... />  and node.type = 'myType'
+```
+Handle props: `kind: 'source'|'target'`, `side: 'left'|'right'|'top'|'bottom'`,
+optional `id`, `dataType` (typed ports), `maxConnections`.
+
+## AI agent operations (@reflow/core)
+
+An LLM should emit an array of operations; apply them with `applyOperations`:
+
+```ts
+import { applyOperations, operationSchema, OPERATIONS_PROMPT,
+         describeGraph, toMermaid } from '@reflow/core';
+
+applyOperations(store, [
+  { op: 'add_node', id: 'fetch', label: 'Fetch data' },   // omit position => auto-layout
+  { op: 'add_node', id: 'clean', label: 'Clean' },
+  { op: 'connect', source: 'fetch', target: 'clean' },
+  { op: 'set_status', id: 'fetch', status: 'running', message: 'batch 3/10' },
+]);
+```
+- Ops: add_node, update_node, remove_node, connect, remove_edge, update_edge,
+  set_status, select, layout, fit_view, focus_node, clear.
+- Never throws; invalid ops are returned in `result.errors` for self-correction.
+- One `applyOperations` call = one undo entry.
+- Use `operationSchema` as an LLM tool `input_schema` (Anthropic) /
+  `parameters` (OpenAI). Use `describeGraph(store)` or `toMermaid(store)` to
+  give the model the current graph cheaply.
+
+## Migrating from React Flow
+
+Change imports to `@reflow/compat` (and CSS to `@reflow/compat/style.css`).
+`ReactFlow`, `Handle` (`type`/`position`), `Position`, `useReactFlow`,
+`useNodesState`, `applyNodeChanges`, `addEdge` all work. See docs/migration.md.
+
+## Docs
+
+- Getting started: docs/getting-started.md
+- Custom nodes & edges: docs/custom-nodes.md
+- AI integration: docs/ai-integration.md
+- UI framework integration (Tailwind/shadcn/Radix/Base UI): docs/integrations.md
+- Migration from React Flow: docs/migration.md
+- Performance: docs/performance.md
+- API: docs/api.md
+- Honesty audit: CLAIMS.md · Benchmarks: benchmarks/BENCHMARKS.md

@@ -18,6 +18,7 @@ import {
   expandRect,
   fitRect,
   rectContainsRect,
+  rectCenter,
   rectsIntersect,
   rectUnion,
   sideAnchor,
@@ -31,6 +32,10 @@ import { setsEqual, uid } from './utils';
 
 export const DEFAULT_NODE_WIDTH = 172;
 export const DEFAULT_NODE_HEIGHT = 44;
+
+/** Synthetic default-handle ids are internal; store them as undefined. */
+const normalizeHandleId = (id: string | null | undefined): string | undefined =>
+  id == null || id === '__source' || id === '__target' ? undefined : id;
 
 type Listener = () => void;
 
@@ -76,6 +81,8 @@ export class FlowStore {
   readonly selectedNodes = new Set<string>();
   readonly selectedEdges = new Set<string>();
   connection: ConnectionState | null = null;
+  /** Set while dragging an existing edge's endpoint to a new handle. */
+  reconnecting: { edgeId: string; end: 'source' | 'target' } | null = null;
   guides: Guide[] = [];
 
   /** Node ids inside the culling viewport (all depths). */
@@ -122,6 +129,10 @@ export class FlowStore {
   /** Hysteresis: skip viewport-only re-culls while the raw view stays
    *  inside the last culled region (minus a half-margin buffer). */
   private lastCullRect: Rect | null = null;
+  /** Zoom at the last cull. Containment hysteresis only applies while zoom
+   *  is unchanged — zooming IN from an overview shrinks the view inside the
+   *  old region, which must still re-cull or nothing gets culled. */
+  private lastCullZoom = 0;
   private vpAnim: number | null = null;
 
   constructor(options: StoreOptions = {}) {
@@ -698,6 +709,46 @@ export class FlowStore {
     return acc ?? { x: 0, y: 0, width: 0, height: 0 };
   }
 
+  /**
+   * The nearest visible node to `fromId` in a cardinal direction — for
+   * keyboard/screen-reader spatial navigation. Uses a cone test so
+   * "right" prefers nodes actually to the right, breaking ties by distance.
+   */
+  nearestNodeInDirection(fromId: string, dir: 'left' | 'right' | 'up' | 'down'): string | null {
+    const from = this.nodes.get(fromId);
+    if (!from) return null;
+    const a = rectCenter(this.nodeRect(fromId));
+    let best: { id: string; score: number } | null = null;
+    for (const id of this.nodeOrder) {
+      if (id === fromId) continue;
+      const node = this.nodes.get(id)!;
+      if (node.hidden || node.selectable === false) continue;
+      const b = rectCenter(this.nodeRect(id));
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      let along = 0;
+      let across = 0;
+      if (dir === 'left') {
+        along = -dx;
+        across = Math.abs(dy);
+      } else if (dir === 'right') {
+        along = dx;
+        across = Math.abs(dy);
+      } else if (dir === 'up') {
+        along = -dy;
+        across = Math.abs(dx);
+      } else {
+        along = dy;
+        across = Math.abs(dx);
+      }
+      if (along <= 0) continue; // wrong direction
+      // Prefer aligned + close: penalize perpendicular offset.
+      const score = along + across * 2;
+      if (!best || score < best.score) best = { id, score };
+    }
+    return best?.id ?? null;
+  }
+
   /** Nodes whose rects intersect (or are fully inside) the given rect. */
   nodesInRect(rect: Rect, partially = true): string[] {
     const hits = this.spatial.query(rect);
@@ -866,6 +917,87 @@ export class FlowStore {
     this.commit();
   }
 
+  // ── clipboard: copy / paste / duplicate ───────────────────────────────
+
+  /**
+   * Serialize a set of nodes (default: the selection) plus the edges wholly
+   * between them. The result is JSON-serializable — stash it in app state or
+   * the system clipboard.
+   */
+  copy(nodeIds: string[] = [...this.selectedNodes]): { nodes: Node[]; edges: Edge[] } {
+    const idSet = new Set(nodeIds);
+    // Include descendants so groups copy with their children.
+    for (const id of nodeIds) {
+      const stack = this.childrenOf(id);
+      while (stack.length) {
+        const kid = stack.pop()!;
+        idSet.add(kid);
+        stack.push(...this.childrenOf(kid));
+      }
+    }
+    const nodes = [...idSet].filter((id) => this.nodes.has(id)).map((id) => ({ ...this.nodes.get(id)! }));
+    const seen = new Set<string>();
+    const edges: Edge[] = [];
+    for (const id of idSet) {
+      for (const e of this.edgesOf(id)) {
+        if (!seen.has(e.id) && idSet.has(e.source) && idSet.has(e.target)) {
+          seen.add(e.id);
+          edges.push({ ...e });
+        }
+      }
+    }
+    return { nodes, edges };
+  }
+
+  /**
+   * Insert a copied payload with fresh ids, offset so pasted nodes don't sit
+   * exactly on the originals, and select the result. Returns the new ids.
+   * One undo entry.
+   */
+  paste(
+    payload: { nodes: Node[]; edges: Edge[] },
+    offset: XY = { x: 24, y: 24 }
+  ): { nodeIds: string[]; edgeIds: string[] } {
+    const idMap = new Map<string, string>();
+    for (const n of payload.nodes) idMap.set(n.id, uid('n'));
+    const newNodes: Node[] = payload.nodes.map((n) => ({
+      ...n,
+      id: idMap.get(n.id)!,
+      // Only offset roots of the pasted set (children keep relative pos).
+      parentId: n.parentId != null && idMap.has(n.parentId) ? idMap.get(n.parentId)! : undefined,
+      position:
+        n.parentId != null && idMap.has(n.parentId)
+          ? { ...n.position }
+          : { x: n.position.x + offset.x, y: n.position.y + offset.y },
+      selected: true,
+    }));
+    const newEdges: Edge[] = payload.edges
+      .filter((e) => idMap.has(e.source) && idMap.has(e.target))
+      .map((e) => ({
+        ...e,
+        id: uid('e'),
+        source: idMap.get(e.source)!,
+        target: idMap.get(e.target)!,
+        selected: false,
+      }));
+
+    this.transact('paste', () => {
+      this.addNodes(newNodes);
+      this.addEdges(newEdges);
+      this.setSelection(
+        newNodes.map((n) => n.id),
+        []
+      );
+    });
+    this.commit();
+    return { nodeIds: newNodes.map((n) => n.id), edgeIds: newEdges.map((e) => e.id) };
+  }
+
+  /** Copy + paste the selection in one step (⌘D-style). */
+  duplicateSelection(offset: XY = { x: 24, y: 24 }): { nodeIds: string[]; edgeIds: string[] } {
+    return this.paste(this.copy(), offset);
+  }
+
   // ── dragging (with grid snap + alignment guides) ──────────────────────
 
   startDrag(ids: string[]): void {
@@ -1013,6 +1145,7 @@ export class FlowStore {
     const node = this.nodes.get(nodeId);
     if (!node || node.connectable === false) return;
     const handle = this.resolveHandle(nodeId, kind, handleId);
+    this.reconnecting = null;
     this.connection = {
       fromNode: nodeId,
       fromHandle: handle,
@@ -1021,6 +1154,35 @@ export class FlowStore {
       valid: null,
     };
     this.emit('connection');
+  }
+
+  /**
+   * Begin reconnecting one end of an existing edge. The opposite (anchored)
+   * end becomes the connection origin; dropping on a new handle moves this
+   * edge's endpoint. Dropping on nothing deletes the edge (React Flow's
+   * default reconnect-to-void behavior).
+   */
+  startReconnect(edgeId: string, end: 'source' | 'target'): void {
+    const edge = this.edges.get(edgeId);
+    if (!edge) return;
+    // The anchored end is the OPPOSITE of the one being dragged.
+    const anchorEnd: HandleKind = end === 'source' ? 'target' : 'source';
+    const anchorNode = anchorEnd === 'source' ? edge.source : edge.target;
+    const anchorHandleId = anchorEnd === 'source' ? edge.sourceHandle : edge.targetHandle;
+    const handle = this.resolveHandle(anchorNode, anchorEnd, anchorHandleId);
+    this.reconnecting = { edgeId, end };
+    this.connection = {
+      fromNode: anchorNode,
+      fromHandle: handle,
+      to: this.handleAnchor(handle),
+      toHandle: null,
+      valid: null,
+    };
+    this.emit('connection');
+  }
+
+  get isReconnecting(): boolean {
+    return this.reconnecting !== null;
   }
 
   moveConnection(to: XY): void {
@@ -1035,12 +1197,44 @@ export class FlowStore {
     this.emit('connection');
   }
 
-  /** Complete the pending connection; returns the new edge if created. */
+  /** Complete the pending connection; returns the new/updated edge. */
   endConnection(): Edge | null {
     const conn = this.connection;
+    const reconnect = this.reconnecting;
     this.connection = null;
+    this.reconnecting = null;
     this.emit('connection');
-    if (!conn || !conn.toHandle || !conn.valid) return null;
+    if (!conn) return null;
+
+    // Reconnection: move the dragged end, or delete the edge on drop-to-void.
+    if (reconnect) {
+      const edge = this.edges.get(reconnect.edgeId);
+      if (!edge) return null;
+      // Dropped on empty space (no handle): delete the edge (drop-to-void).
+      if (!conn.toHandle) {
+        this.removeEdges([reconnect.edgeId]);
+        return null;
+      }
+      // Dropped on an incompatible handle (duplicate/cycle/type): revert,
+      // leaving the edge untouched.
+      if (!conn.valid) return null;
+      const patch =
+        reconnect.end === 'source'
+          ? { source: conn.toHandle.nodeId, sourceHandle: normalizeHandleId(conn.toHandle.id) }
+          : { target: conn.toHandle.nodeId, targetHandle: normalizeHandleId(conn.toHandle.id) };
+      // Guard against creating an invalid edge (self-loop, dup, cycle).
+      const candidate: ConnectionCandidate = {
+        source: reconnect.end === 'source' ? conn.toHandle.nodeId : edge.source,
+        target: reconnect.end === 'target' ? conn.toHandle.nodeId : edge.target,
+        sourceHandle: reconnect.end === 'source' ? conn.toHandle.id : edge.sourceHandle,
+        targetHandle: reconnect.end === 'target' ? conn.toHandle.id : edge.targetHandle,
+      };
+      if (this.validateCandidate(candidate) !== true) return null;
+      this.updateEdge(reconnect.edgeId, patch);
+      return this.edges.get(reconnect.edgeId) ?? null;
+    }
+
+    if (!conn.toHandle || !conn.valid) return null;
     const from = conn.fromHandle;
     const to = conn.toHandle;
     const candidate: ConnectionCandidate =
@@ -1063,6 +1257,7 @@ export class FlowStore {
   cancelConnection(): void {
     if (!this.connection) return;
     this.connection = null;
+    this.reconnecting = null;
     this.emit('connection');
   }
 
@@ -1077,8 +1272,8 @@ export class FlowStore {
       ...props,
       source: candidate.source,
       target: candidate.target,
-      sourceHandle: candidate.sourceHandle,
-      targetHandle: candidate.targetHandle,
+      sourceHandle: normalizeHandleId(candidate.sourceHandle),
+      targetHandle: normalizeHandleId(candidate.targetHandle),
     };
     this.addEdges([edge]);
     return this.edges.get(edge.id) ?? null;
@@ -1090,6 +1285,10 @@ export class FlowStore {
     if (c.source === c.target) return 'self loop';
 
     if (!this.options.allowDuplicateEdges) {
+      // Synthetic default-handle ids ("__source"/"__target") are equivalent
+      // to an unset handle, so normalize before comparing.
+      const norm = (h: string | null | undefined): string | null =>
+        h == null || h === '__source' || h === '__target' ? null : h;
       const set = this.nodeEdges.get(c.source);
       if (set) {
         for (const eid of set) {
@@ -1097,8 +1296,8 @@ export class FlowStore {
           if (
             e.source === c.source &&
             e.target === c.target &&
-            (e.sourceHandle ?? null) === (c.sourceHandle ?? null) &&
-            (e.targetHandle ?? null) === (c.targetHandle ?? null)
+            norm(e.sourceHandle) === norm(c.sourceHandle) &&
+            norm(e.targetHandle) === norm(c.targetHandle)
           ) {
             return 'duplicate edge';
           }
@@ -1340,11 +1539,18 @@ export class FlowStore {
     if (active) {
       const margin = this.options.cullingMargin ?? 300;
       const raw = visibleRect(this.viewport, this.screen.width, this.screen.height);
-      if (!force && this.lastCullRect && rectContainsRect(this.lastCullRect, raw)) {
+      // Skip only on a pure pan (same zoom) still inside the overscan buffer.
+      if (
+        !force &&
+        this.lastCullRect &&
+        this.viewport.zoom === this.lastCullZoom &&
+        rectContainsRect(this.lastCullRect, raw)
+      ) {
         return; // still covered by the last cull's overscan
       }
       const view = expandRect(raw, margin);
       this.lastCullRect = expandRect(raw, margin / 2);
+      this.lastCullZoom = this.viewport.zoom;
       nextNodes = this.spatial.query(view);
       // Selected + dragged nodes always render.
       for (const id of this.selectedNodes) nextNodes.add(id);

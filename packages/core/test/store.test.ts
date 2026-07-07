@@ -296,6 +296,38 @@ describe('viewport & culling', () => {
     expect(store.cullingActive).toBe(false);
     expect(store.visibleRoots.size).toBe(2);
   });
+
+  it('re-culls when zooming IN from an overview (hysteresis regression)', () => {
+    // Regression: zooming in from a fit-all overview left every node
+    // rendered because the small new view was contained in the old huge
+    // culled region and the pan-hysteresis wrongly skipped the re-cull.
+    const nodes: Node[] = [];
+    for (let i = 0; i < 400; i++) nodes.push(n(`x${i}`, (i % 20) * 400, Math.floor(i / 20) * 300));
+    const store = new FlowStore({ nodes });
+    store.setScreenSize(1000, 700);
+    // Overview: zoomed way out so everything is visible.
+    store.setViewport({ x: 0, y: 0, zoom: 0.05 });
+    store.cull();
+    expect(store.visibleRoots.size).toBe(400);
+    // Now zoom in to 1:1 near the origin — only a handful should remain.
+    store.setViewport({ x: 0, y: 0, zoom: 1 });
+    store.cull(false); // non-forced, mimicking the scheduled cull after pan/zoom
+    expect(store.visibleRoots.size).toBeLessThan(30);
+  });
+
+  it('pan hysteresis still skips redundant re-culls at constant zoom', () => {
+    const nodes: Node[] = [];
+    for (let i = 0; i < 400; i++) nodes.push(n(`x${i}`, (i % 20) * 400, Math.floor(i / 20) * 300));
+    const store = new FlowStore({ nodes, cullingMargin: 400 });
+    store.setScreenSize(1000, 700);
+    store.setViewport({ x: 0, y: 0, zoom: 1 });
+    store.cull();
+    const before = store.visibleRoots;
+    // Tiny pan at same zoom, within the overscan buffer => same Set identity.
+    store.setViewport({ x: -20, y: -10, zoom: 1 });
+    store.cull(false);
+    expect(store.visibleRoots).toBe(before);
+  });
 });
 
 describe('snapshot', () => {

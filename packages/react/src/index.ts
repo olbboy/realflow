@@ -4,6 +4,8 @@ export { Background, type BackgroundProps } from './Background';
 export { MiniMap, type MiniMapProps } from './MiniMap';
 export { Controls, type ControlsProps } from './Controls';
 export { Panel, type PanelProps, type PanelPosition } from './Panel';
+export { NodeToolbar, type NodeToolbarProps } from './NodeToolbar';
+export { NodeResizer, type NodeResizerProps } from './NodeResizer';
 export { DefaultNode, InputNode, OutputNode, GroupNode } from './DefaultNode';
 export { NodeView, NodesLayer } from './NodeRenderer';
 export { EdgeView, EdgesLayer } from './EdgeRenderer';
@@ -18,6 +20,8 @@ export {
   useSelection,
   useHistory,
   useConnection,
+  useOnSelectionChange,
+  useSelectionCount,
   useFlowSelector,
   createApi,
   type ReflowApi,

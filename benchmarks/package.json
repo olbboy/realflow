@@ -1,0 +1,9 @@
+{
+  "name": "reflow-benchmarks",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "bench": "vite build && node run.mjs"
+  }
+}

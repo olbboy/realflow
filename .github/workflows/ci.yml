@@ -16,8 +16,31 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Build packages
-        run: npm run build
-      - name: Unit tests
+        run: npm run build && npm run build -w @reflow/compat
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit + integration tests
         run: npm test
       - name: Build demo
         run: npm run build:demo
+      - name: Verify npm pack is clean
+        run: |
+          npm pack --dry-run -w @reflow/core
+          npm pack --dry-run -w @reflow/react
+          npm pack --dry-run -w @reflow/compat
+
+  benchmark:
+    runs-on: ubuntu-latest
+    # Benchmarks are informational; don't block merges on FPS in CI.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium for Playwright
+        run: npx playwright install chromium
+      - name: Run head-to-head benchmark
+        run: npm run bench

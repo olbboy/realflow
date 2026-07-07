@@ -1,9 +1,9 @@
 import { memo, useRef } from 'react';
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
 import type { EdgeMarker, Side } from '@reflow/core';
-import { edgePath } from '@reflow/core';
+import { edgePath, screenToFlow } from '@reflow/core';
 import { useFlowStore } from './context';
-import { useConfig } from './config';
+import { useConfig, useContainer } from './config';
 import { useConnection, useFlowSelector } from './hooks';
 
 const markerUrl = (m?: EdgeMarker): string | undefined =>
@@ -90,7 +90,68 @@ export const EdgeView = memo(function EdgeView({ id }: { id: string }) {
           </text>
         </g>
       ) : null}
+      {edge.selected && !config.readOnly && edge.deletable !== false ? (
+        <>
+          <ReconnectHandle edgeId={id} end="source" x={geo.source.x} y={geo.source.y} />
+          <ReconnectHandle edgeId={id} end="target" x={geo.target.x} y={geo.target.y} />
+        </>
+      ) : null}
     </g>
+  );
+});
+
+/** Draggable endpoint shown on a selected edge; drag it to reconnect. */
+const ReconnectHandle = memo(function ReconnectHandle({
+  edgeId,
+  end,
+  x,
+  y,
+}: {
+  edgeId: string;
+  end: 'source' | 'target';
+  x: number;
+  y: number;
+}) {
+  const store = useFlowStore();
+  const config = useConfig();
+  const container = useContainer();
+  const onPointerDown = (e: ReactPointerEvent<SVGCircleElement>): void => {
+    if (e.button !== 0) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const el = e.currentTarget;
+    try {
+      el.setPointerCapture(e.pointerId);
+    } catch {
+      /* noop */
+    }
+    store.startReconnect(edgeId, end);
+    const toFlow = (cx: number, cy: number) => {
+      const r = container.current?.getBoundingClientRect();
+      return screenToFlow({ x: cx - (r?.left ?? 0), y: cy - (r?.top ?? 0) }, store.viewport);
+    };
+    const move = (ev: PointerEvent) => store.moveConnection(toFlow(ev.clientX, ev.clientY));
+    const up = () => {
+      el.removeEventListener('pointermove', move);
+      el.removeEventListener('pointerup', up);
+      el.removeEventListener('pointercancel', up);
+      const edge = store.endConnection();
+      if (edge) config.onConnect?.(edge);
+    };
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+  };
+  return (
+    <circle
+      className="rf-edge-reconnect"
+      cx={x}
+      cy={y}
+      r={5}
+      onPointerDown={onPointerDown}
+      role="button"
+      aria-label={`reconnect ${end}`}
+    />
   );
 });
 

@@ -11,13 +11,15 @@ import {
 } from '@reflow/react';
 import { demoNodeTypes, makeStress, showcaseEdges, showcaseNodes } from './scenes';
 import { AIScene } from './AIScene';
+import { FrameworkScene } from './FrameworkScene';
 
-type Scene = 'showcase' | 'copilot' | 'stress-1k' | 'stress-5k' | 'stress-10k';
+type Scene = 'showcase' | 'copilot' | 'framework' | 'stress-1k' | 'stress-5k' | 'stress-10k';
 
 const sceneData = (scene: Scene) => {
   switch (scene) {
     case 'showcase':
     case 'copilot':
+    case 'framework':
       return { nodes: showcaseNodes, edges: showcaseEdges };
     case 'stress-1k':
       return makeStress(1000);
@@ -98,6 +100,7 @@ export default function App() {
             [
               ['showcase', 'Showcase'],
               ['copilot', 'AI copilot'],
+              ['framework', 'UI frameworks'],
               ['stress-1k', '1k nodes'],
               ['stress-5k', '5k nodes'],
               ['stress-10k', '10k nodes'],
@@ -121,6 +124,8 @@ export default function App() {
       <main className="demo-canvas">
         {scene === 'copilot' ? (
           <AIScene key="copilot" dark={dark} />
+        ) : scene === 'framework' ? (
+          <FrameworkScene key="framework" dark={dark} />
         ) : (
         <ReFlow
           key={scene}
