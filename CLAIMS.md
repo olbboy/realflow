@@ -49,7 +49,7 @@ Legend: ✅ HAVE (code + test/measurement) · 🟡 PARTIAL · ❌ MISSING · ⚠
 
 | Claim | Status | Evidence |
 | --- | --- | --- |
-| Works with Tailwind/shadcn/Radix/Base UI | 🟡 | Architecturally class-scoped; recipe in `docs/integrations.md`; demo node proves portal/pointer coexistence (task in progress) |
+| Works with Tailwind/shadcn/Radix/Base UI | ✅ | Demo has a node built from **real** shadcn/ui Card+Select+Popover (the actual `@radix-ui/react-select`/`react-popover`) and one from **real** `@base-ui-components/react` Select+Popover. `e2e/framework-nodes.spec.ts` — 5 tests × Chromium/Firefox/WebKit prove portals open above the canvas, selecting doesn't pan, and nodes stay draggable. Recipe in `docs/integrations.md`. |
 | React Flow API compat adapter | 🟡→✅ | `@reflow/compat` package + `compat.test.tsx` (see PROGRESS.md) |
 | npm-publishable | ✅ | `npm pack --dry-run` clean for both packages; exports/types/sideEffects set |
 | CI runs typecheck+test+build | ✅ | `.github/workflows/ci.yml` |
@@ -69,9 +69,6 @@ Legend: ✅ HAVE (code + test/measurement) · 🟡 PARTIAL · ❌ MISSING · ⚠
 - Visual regression tests — ❌ not implemented.
 - Live *hosted* docs site — the `examples/docs-site` app exists and builds; it
   is not deployed to a public URL from here.
-- Framework demo on the **real** shadcn/Base UI packages — 🟡 the portal +
-  pointer-isolation pattern those libraries use is proven (`FrameworkScene.tsx`),
-  but it hand-rolls the primitives rather than importing the packages.
 - Live Anthropic `/v1/messages` AI E2E — ❌ needs an API key; the JSON op layer
   it would call is fully fuzz-tested and the pattern is documented + demoed.
 - Overview-mode (all-nodes-visible) pan is paint-bound for BOTH libraries under

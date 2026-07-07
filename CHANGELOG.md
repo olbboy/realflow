@@ -8,6 +8,15 @@ contain breaking changes to APIs marked **experimental** in
 
 ## [Unreleased]
 
+### Added — UI-framework integration (Gate B)
+- **Real shadcn/ui + Base UI nodes in the demo.** The "UI frameworks" tab now
+  renders a node built from actual shadcn/ui Card + Select + Popover (the real
+  `@radix-ui/react-select` / `@radix-ui/react-popover`) and a node built from
+  real `@base-ui-components/react` Select + Popover. Tailwind runs with
+  preflight disabled so it can't reset host styles. `e2e/framework-nodes.spec.ts`
+  (5 tests × Chromium/Firefox/WebKit) proves the portals open above the canvas,
+  selecting an option never pans the viewport, and the nodes stay draggable.
+
 ### Added — testing & reproducibility
 - **Cross-browser + touch E2E matrix** (`playwright.config.ts`,
   `e2e/core-flow.spec.ts`): 18 assertion-based tests over Chromium, Firefox,

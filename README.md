@@ -275,11 +275,10 @@ Every performance claim here is backed by a reproducible benchmark, and
 every feature by a passing test. [CLAIMS.md](./CLAIMS.md) is a line-by-line
 audit of this README against the code; [PROGRESS.md](./PROGRESS.md) tracks
 what's done vs. what's still open. Honestly still open and labelled as such:
-visual-regression tests; a *live* Anthropic-API AI demo (the JSON operation
-layer it calls is fully fuzz-tested — only the keyed round-trip is unwired);
-and a framework demo built on the real shadcn/Base UI packages (the exact
-portal + pointer-isolation pattern those libraries use is already proven in
-the UI-frameworks demo tab, just not yet with the packages themselves).
+visual-regression tests, and a *live* Anthropic-API AI demo (the JSON
+operation layer it calls is fully fuzz-tested — only the keyed round-trip is
+unwired). The UI-frameworks demo tab is built on the **real** shadcn/ui
+(Radix) and Base UI packages, verified across Chromium/Firefox/WebKit.
 
 ## Run the demo
 

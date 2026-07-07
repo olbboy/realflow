@@ -23,14 +23,15 @@ are done. Visual regression remains.
 | Requirement | Status | Evidence |
 | --- | --- | --- |
 | Nodes/handles/edges don't impose blocking styles; className/style overridable | ✅ | All styling via `rf-*` classes + `--rf-*` variables; `docs/integrations.md` |
-| No z-index/portal/pointer conflict with portal menus inside nodes | ✅ | `examples/demo/.../FrameworkScene.tsx` — portal dropdown + `<select>` + number input inside draggable nodes; `rf-nodrag` opt-out; verified in browser (see PROGRESS note) |
-| No global CSS leakage; CSS-var theming (light/dark) | ✅ | `packages/react/src/styles.css` is fully scoped; `colorMode` + page `data-theme` |
-| Live demo with framework-style nodes | ✅ | "UI frameworks" tab in the demo |
-| shadcn/Radix/Base UI theme-token mapping | ✅ (documented) | `docs/integrations.md` maps `--rf-*` → shadcn HSL tokens |
+| No z-index/portal/pointer conflict with portal menus inside nodes | ✅ | `FrameworkScene.tsx` uses **real** Radix + Base UI portals inside draggable nodes; `e2e/framework-nodes.spec.ts` asserts the menu opens above the canvas and selecting doesn't pan — Chromium/Firefox/WebKit |
+| No global CSS leakage; CSS-var theming (light/dark) | ✅ | `packages/react/src/styles.css` is fully scoped; `colorMode` + page `data-theme`; demo Tailwind runs with preflight OFF so it can't reset host styles |
+| Live demo built on the real shadcn + Base UI packages | ✅ | "UI frameworks" tab: `ShadcnServiceNode` (shadcn/ui Card+Select+Popover on real `@radix-ui/*`) + `BaseUiServiceNode` (real `@base-ui-components/react`); 5 runtime E2E tests × 3 browsers pass |
+| shadcn/Radix/Base UI theme-token mapping | ✅ | `docs/integrations.md` maps `--rf-*` → shadcn HSL tokens; demo wires the shadcn token set for real |
 
-Gate B: **met.** Portal coexistence is proven with the exact pattern
-Radix/Base UI use (portal to body + fixed positioning + own pointer
-handling). Shadow-DOM isolation is untested (noted as a future item).
+Gate B: **met, with the real packages.** Nodes are built from actual shadcn/ui
+(Radix) and Base UI components; portals, positioning and pointer handling
+coexist with drag/pan/zoom, verified by a cross-browser runtime E2E. Shadow-DOM
+isolation is still untested (noted as a future item).
 
 ## Gate C — AI-native
 
@@ -71,9 +72,6 @@ Tier 2: **complete.**
 ## Remaining honest gaps (post-Tier 3)
 
 - Visual regression tests — not implemented.
-- Gate B real-library demo — the portal/pointer coexistence pattern is proven,
-  but `FrameworkScene` hand-rolls the primitives rather than importing the
-  actual shadcn/Base UI packages. 🟡
 - Live Anthropic `/v1/messages` AI E2E — needs an API key; the JSON op layer it
   calls is fully fuzz-tested and the flow is documented + demoed (scripted). ❌
 - Live *hosted* docs site — the site exists and builds; it isn't deployed to a URL here.
