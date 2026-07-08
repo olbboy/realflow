@@ -52,7 +52,7 @@ Legend: ✅ HAVE (code + test/measurement) · 🟡 PARTIAL · ❌ MISSING · ⚠
 | Works with Tailwind/shadcn/Radix/Base UI | ✅ | Demo has a node built from **real** shadcn/ui Card+Select+Popover (the actual `@radix-ui/react-select`/`react-popover`) and one from **real** `@base-ui-components/react` Select+Popover. `e2e/framework-nodes.spec.ts` — 5 tests × Chromium/Firefox/WebKit prove portals open above the canvas, selecting doesn't pan, and nodes stay draggable. Recipe in `docs/integrations.md`. |
 | React Flow API compat adapter | 🟡→✅ | `@reflow/compat` package + `compat.test.tsx` (see PROGRESS.md) |
 | npm-publishable | ⚠️→✅ | `npm pack --dry-run` clean for all three. **WAS BROKEN for real consumers**: `tsc` (moduleResolution `bundler`) emitted extensionless ESM imports, so `import '@reflow/core'` threw `ERR_MODULE_NOT_FOUND` under native Node — invisible to tests/Vite (which alias to `src`). Fixed with a post-build `.js`-extension codemod + a CI step that actually `import()`s each built package under Node. |
-| CI runs typecheck+test+build | ✅ | `.github/workflows/ci.yml` |
+| CI runs lint+typecheck+test+build | ✅ | `.github/workflows/ci.yml` — ESLint (typescript-eslint + react-hooks), typecheck, unit, build, pack, Node-ESM load, `e2e`, `visual` |
 
 ## Differentiation (Tier 3) — verified this cycle
 

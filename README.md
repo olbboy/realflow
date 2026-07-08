@@ -295,7 +295,8 @@ npm run dev   # showcase + 1k/5k/10k stress scenes at http://localhost:5173
 
 ```bash
 npm run build      # build core + react (compat: npm run build -w @reflow/compat)
-npm test           # 132 unit/integration tests (vitest)
+npm run lint       # ESLint (typescript-eslint + react-hooks)
+npm test           # 144 unit/integration tests (vitest)
 npm run typecheck  # strict TS across packages
 npm run test:e2e   # cross-browser E2E: Chromium/Firefox/WebKit + touch (Playwright)
 npm run test:e2e:visual  # visual-regression snapshots (Chromium, pinned baselines)

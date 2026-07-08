@@ -8,6 +8,14 @@ contain breaking changes to APIs marked **experimental** in
 
 ## [Unreleased]
 
+### Added — tooling
+- **ESLint (flat config) wired into CI.** `eslint.config.mjs` runs
+  typescript-eslint + react-hooks across packages, tests, examples and the
+  build/bench scripts; `npm run lint` (and `lint:fix`). The first pass fixed
+  ~20 real issues — dead code (an unused collab test helper, a stray `rows`
+  binding), unused imports, a ternary-as-statement, and a redundant regex
+  escape. CI's `test` job now lints before building.
+
 ### Added — AI agent (Gate C)
 - **Provider-agnostic live AI bridge** (`examples/ai-agent`). A zero-SDK
   `fetch` adapter turns a natural-language goal into validated ReFlow

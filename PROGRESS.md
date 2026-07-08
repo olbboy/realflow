@@ -8,16 +8,15 @@ reproducible measurement. Gaps are listed plainly, not hidden.
 | Requirement | Status | Evidence |
 | --- | --- | --- |
 | npm-publishable (exports/types/sideEffects/peerDeps, semver) | ⚠️→✅ | `npm pack --dry-run` clean for core/react/compat; `API_STABILITY.md`; `CHANGELOG.md`. **Fixed a real blocker**: built ESM used extensionless imports so `import '@reflow/core'` failed under native Node (bundlers hid it); post-build `.js`-extension codemod + a CI step that `import()`s each built package now guard it. |
-| CI: typecheck + tests + build | ✅ | `.github/workflows/ci.yml` (build, typecheck, test, demo build, pack verify) |
+| CI: lint + typecheck + tests + build | ✅ | `.github/workflows/ci.yml` — lint (ESLint + typescript-eslint + react-hooks), build, typecheck, unit, demo build, pack verify, Node-ESM load, plus `e2e` and `visual` jobs |
 | Head-to-head benchmark, reproducible, prod builds, both actually pan | ✅ | `npm run bench` → `benchmarks/BENCHMARKS.md`; movement-verified. **Portability bug fixed** (`run.mjs` had a hard-coded CI-only browser path that made `npm run bench` fail on any other machine). Re-run locally: ReFlow wins the edit scenario 120 vs 21 fps @10k, ~14× less heap. |
 | `applyOperations` fuzz test (never-throw) | ✅ | `packages/core/test/ops-fuzz.test.ts` — 30 seeds × hostile input, proto-pollution guard. **Caught 3 real bugs**: two spatial-index infinite-loop DoS (huge dimension / extreme coordinate) and Symbol→number throws — all fixed + regression-tested. |
 | Cross-browser Playwright matrix (Chromium/Firefox/WebKit) + touch E2E | ✅ | `playwright.config.ts` + `e2e/core-flow.spec.ts` + `e2e/framework-nodes.spec.ts` — green on CI across Chromium/Firefox/WebKit + mobile-touch. WebKit runs rendering, culling, touch-tap, mouse node-drag and all shadcn/Base UI interactions; two showcase interactions (keyboard-nudge, handle-connect) run on Chromium+Firefox only because Playwright's *headless Linux* WebKit doesn't deliver synthetic keyboard focus / complete handle drags (both pass on macOS WebKit — an engine quirk, not a ReFlow bug). |
 | Visual regression tests | ✅ | `e2e/visual.spec.ts` — 4 masked, animation-frozen snapshots (showcase, framework light/dark, routing); baselines committed; CI `visual` job runs on macOS to match the darwin baselines. `npm run test:e2e:visual`. |
 
-Gate A: **met.** Publishable, CI, reproducible honest benchmark (now runs on
-any machine), fuzz, a real cross-browser + touch E2E matrix, and visual
-regression are all done. Remaining Gate-A-adjacent nicety: a CI lint step
-(no ESLint config in the repo yet).
+Gate A: **met.** Publishable, CI (lint + typecheck + unit + E2E), reproducible
+honest benchmark (now runs on any machine), fuzz, a real cross-browser + touch
+E2E matrix, and visual regression are all done.
 
 ## Gate B — UI-framework compatibility
 
@@ -74,8 +73,6 @@ Tier 2: **complete.**
 
 ## Remaining honest gaps (post-Tier 3)
 
-- CI lint step — the repo has no ESLint config, so CI doesn't lint (typecheck
-  is strict, but that's not the same thing).
 - The *keyed* AI round-trip isn't in CI (needs a secret). It runs locally via
   `examples/ai-agent/generate.mjs` with a GLM/Gemini/Anthropic key; the whole
   pipeline around it is unit-tested with canned responses.
