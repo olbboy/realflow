@@ -5,11 +5,10 @@
 **Node-based UIs for React, reimagined.**
 
 The fastest open source library for building flow editors, workflow
-builders, data pipelines and node graphs with React — with the **engine**
-features other libraries put behind a paywall (undo/redo, viewport culling,
-auto-layout, edge routing, collaboration) built in and free. Not a strict
-superset of React Flow Pro — [GAPS.md](./GAPS.md) is honest about what it
-doesn't do yet.
+builders, data pipelines and node graphs with React — with the features
+other libraries put behind a paywall built in and free. **All 16 React Flow
+Pro examples** now have a working, MIT-free RealFlow equivalent, each backed
+by a test and a live render — the head-to-head is in [GAPS.md](./GAPS.md).
 
 [Quick start](#quick-start) · [Why RealFlow](#why-realflow) · [Features](#features) · [Docs](./docs/getting-started.md) · [Live demo](#run-the-demo)
 

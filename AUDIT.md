@@ -149,28 +149,30 @@ but needs scoping/wording; `REJECT` = not supported.
 | shadcn/Radix + Base UI work inside nodes | **KEEP** | reproduced live: Radix Popover + Select open & position correctly inside a draggable node; Base UI node renders |
 | "**~13× less memory** than React Flow" | **FIX** | true vs React Flow **default** (culling off). vs `onlyRenderVisibleElements` it's ~1.2×. Scope the multiplier to the config |
 | "10,000 nodes … Pan 43 fps" (headline table) | **FIX** | 43 is the CI **software-rendering** figure. Real GPU = 120fps. Both honest; the table should say which rig, as BENCHMARKS.md already does |
-| "the most **complete** … library" / "features other libraries put behind a paywall built in" | **FIX** | true for the features RealFlow *has* (undo, culling, layout, guides, routing, collab). But it is **not** a superset of React Flow Pro: 7 of the 11 Pro **examples** are not covered (freehand, shapes, image export, editable-edge control points, expand/collapse placeholders, dynamic drag-grouping, per-node position animation). "Complete" over-reaches — see GAPS.md |
+| "features other libraries put behind a paywall built in" / "all 16 Pro examples covered" | **KEEP (now)** | at the start of this audit, 7 of 16 Pro examples were uncovered — the claim over-reached. This session ported all 7 (grouping, collapse, position-anim, dynamic-grouping, editable edges, shapes, freehand), each test-backed + live-verified, so the claim is now true against the Pro *example set*. Scope note in GAPS.md: parity is with the 16 demos, not byte-for-byte UX |
 | SSR-safe | **KEEP (as 🟡)** | code guards browser APIs; no SSR render test yet — CLAIMS.md already flags this honestly |
 
 No claim graded **REJECT**: nothing in the README is fabricated. The corrections
-are all *scoping* ("vs which config", "which rig", "complete for what") rather than
-falsehoods. The one materially misleading framing is **"complete"** — addressed in
-GAPS.md.
+are all *scoping* ("vs which config", "which rig"). The one claim that started
+over-reaching — Pro-example completeness — was **made true by implementation**
+this session rather than by softening the wording (see the gap-closer log below).
 
 **Gaps closed this pass (proof-by-migration).** To demonstrate the audit is not
-only documentation, **six** React Flow Pro gaps were ported to real, tested,
-live-verified features (each THUA/NGANG → HƠN):
+only documentation, **all 7 remaining** React Flow Pro gaps were ported to real,
+tested, live-verified features (each THUA/NGANG → HƠN):
 
 1. **Server-Side Image** → headless `toSvg(store)` (`svg-export.test.ts`, 6; XML-injection-safe); demo "⤓ SVG"; output rendered.
 2. **Selection Grouping** → `groupSelection()`/`ungroup()` (`grouping.test.ts`, 6); demo "⧉ Group"; container renders live.
 3. **Expand & Collapse** → `collapseNode`/`expandNode`/`toggleCollapse` (`collapse.test.ts`, 6, incl. nested); demo "⊟ Collapse"; subtree hides live.
 4. **Node Position Animation** → `layout({ animate })` + scoped CSS transition (`layout-api.test.tsx`, +2, drag-clear guard); live computed `transition: transform 0.35s`.
-5. **Parent–Child drag-to-attach** → `reparentOnDrop` in `endDrag` (`reparent-on-drop.test.ts`, 6, cycle-guarded) + `reparentOnDrop` prop; live drag nests a node in a group (DOM + rebased position).
+5. **Parent–Child drag-to-attach** → `reparentOnDrop` in `endDrag` (`reparent-on-drop.test.ts`, 6, cycle-guarded) + prop; live drag nests a node in a group.
 6. **Editable Edge** → `edge.controlPoints` + `splinePath` + draggable handles / double-click (`editable-edges.test.ts`, 5); live spline renders through the control point.
+7. **Shapes + Freehand Draw** → `tool` state + `createShape`/`createFreehand` + pane draw + `ShapeNode`/`FreehandNode` (`shapes-freehand.test.ts`, 6); live-drawn rectangle, ellipse, and freehand spline verified on the canvas.
 
-Scoreboard now **14 win / 0 partial / 2 gap** (was 9/1/6). Test count 144 → 175.
-Only React Flow Pro's two canvas *drawing modes* remain — **Freehand Draw** and
-**Shapes/Whiteboard**. See GAPS.md.
+Scoreboard now **16 win / 0 partial / 0 gap** (was 9/1/6). Test count 144 → 181.
+**RealFlow now has a working, free equivalent for every one of the 16 React Flow
+Pro examples** — verified by tests + live render, not asserted. See GAPS.md (incl.
+its honest scope note: parity is with the Pro *example set*, not byte-for-byte UX).
 
 ---
 
