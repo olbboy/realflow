@@ -27,6 +27,7 @@ import {
 } from './geometry';
 import { SpatialIndex } from './spatial';
 import { computeGuides } from './guides';
+import { getDescendants } from './algorithms';
 import { setsEqual, uid } from './utils';
 
 export const DEFAULT_NODE_WIDTH = 172;
@@ -1037,6 +1038,56 @@ export class FlowStore {
   ungroup(groupId: string): void {
     if (!this.nodes.has(groupId)) return;
     this.removeNodes([groupId]);
+  }
+
+  /** Collapse a node: hide all of its edge-descendants. One undo entry. */
+  collapseNode(id: string): void {
+    const n = this.nodes.get(id);
+    if (!n || n.collapsed) return;
+    this.transact('collapse node', () => {
+      this.updateNode(id, { collapsed: true });
+      this._applyCollapseVisibility();
+    });
+  }
+
+  /** Expand a previously collapsed node, revealing its subtree. */
+  expandNode(id: string): void {
+    const n = this.nodes.get(id);
+    if (!n || !n.collapsed) return;
+    this.transact('expand node', () => {
+      this.updateNode(id, { collapsed: false });
+      this._applyCollapseVisibility();
+    });
+  }
+
+  /** Flip a node between collapsed and expanded. */
+  toggleCollapse(id: string): void {
+    const n = this.nodes.get(id);
+    if (!n) return;
+    if (n.collapsed) this.expandNode(id);
+    else this.collapseNode(id);
+  }
+
+  /**
+   * Recompute node/edge visibility from every node's `collapsed` flag: a node
+   * is hidden iff it is an edge-descendant of at least one collapsed node; an
+   * edge is hidden iff either endpoint is hidden. Nested collapses compose —
+   * a collapsed node inside a collapsed subtree keeps its own subtree hidden
+   * when the outer one expands. Only changed flags are written.
+   */
+  private _applyCollapseVisibility(): void {
+    const hidden = new Set<string>();
+    for (const n of this.nodes.values()) {
+      if (n.collapsed) for (const d of getDescendants(this, n.id)) hidden.add(d);
+    }
+    for (const n of [...this.nodes.values()]) {
+      const shouldHide = hidden.has(n.id);
+      if (!!n.hidden !== shouldHide) this.updateNode(n.id, { hidden: shouldHide });
+    }
+    for (const e of [...this.edges.values()]) {
+      const shouldHide = hidden.has(e.source) || hidden.has(e.target);
+      if (!!e.hidden !== shouldHide) this.updateEdge(e.id, { hidden: shouldHide });
+    }
   }
 
   // ── clipboard: copy / paste / duplicate ───────────────────────────────

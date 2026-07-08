@@ -92,6 +92,13 @@ export default function App() {
     apiRef.current?.groupSelection({ label: 'Group' });
   };
 
+  const collapseSelection = (): void => {
+    const api = apiRef.current;
+    if (!api) return;
+    const first = [...api.store.selectedNodes][0];
+    if (first) api.toggleCollapse(first);
+  };
+
   const addNode = (): void => {
     const api = apiRef.current;
     if (!api) return;
@@ -171,6 +178,7 @@ export default function App() {
               <>
                 <button onClick={addNode}>+ Node</button>
                 <button onClick={groupSelection} title="Group the selected nodes (shift-drag to select)">⧉ Group</button>
+                <button onClick={collapseSelection} title="Collapse/expand the selected node's subtree">⊟ Collapse</button>
               </>
             ) : null}
             <span className="demo-toolbar-label">layout</span>

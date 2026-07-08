@@ -57,6 +57,8 @@ export interface Node<T = Record<string, unknown>> {
   /** Constrain dragging of children to the parent bounds. */
   extent?: 'parent';
   hidden?: boolean;
+  /** When true, this node's edge-descendants are hidden (expand/collapse). */
+  collapsed?: boolean;
   selected?: boolean;
   draggable?: boolean;
   selectable?: boolean;
