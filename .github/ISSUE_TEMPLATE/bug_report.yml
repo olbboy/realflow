@@ -1,0 +1,74 @@
+name: 🐛 Bug report
+description: Report something that isn't working as documented
+labels: ['bug', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug! A minimal reproduction is the
+        single most helpful thing you can provide — a CodeSandbox/StackBlitz link
+        or a failing test gets a fix landed much faster.
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight checklist
+      options:
+        - label: I searched [existing issues](https://github.com/olbboy/realflow/issues) and this is not a duplicate.
+          required: true
+        - label: I am on the latest published version of the affected package.
+          required: true
+  - type: dropdown
+    id: package
+    attributes:
+      label: Affected package
+      options:
+        - '@realflow/react'
+        - '@realflow/core'
+        - '@realflow/compat'
+        - not sure
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      placeholder: e.g. 0.1.0
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Steps to reproduce, or (ideally) a link to a minimal repro / failing test.
+      placeholder: |
+        1. Render `<RealFlow>` with …
+        2. Drag …
+        3. Observe …
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser + version, OS, React version, bundler.
+      placeholder: |
+        - Browser: Chrome 130
+        - OS: macOS 15
+        - React: 19.0.0
+        - Bundler: Vite 6
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console output / stack trace
+      render: shell
+    validations:
+      required: false

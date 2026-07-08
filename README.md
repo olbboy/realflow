@@ -4,6 +4,14 @@
 
 **Node-based UIs for React, reimagined.**
 
+[![CI](https://github.com/olbboy/realflow/actions/workflows/ci.yml/badge.svg)](https://github.com/olbboy/realflow/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/@realflow/react.svg?color=cb3837&logo=npm)](https://www.npmjs.com/package/@realflow/react)
+[![npm downloads](https://img.shields.io/npm/dm/@realflow/react.svg?color=cb3837)](https://www.npmjs.com/package/@realflow/react)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/@realflow/react?label=minzip)](https://bundlephobia.com/package/@realflow/react)
+[![types](https://img.shields.io/badge/types-included-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
+
 The fastest open source library for building flow editors, workflow
 builders, data pipelines and node graphs with React — with the features
 other libraries put behind a paywall built in and free. **All 16 React Flow
@@ -325,6 +333,20 @@ npm run bench      # reproducible head-to-head benchmark vs React Flow
 custom nodes, auto-layout, smart routing, AI ops, collaboration) with source
 shown side-by-side.
 
+## Contributing
+
+Contributions are welcome — bug fixes, features, docs, benchmarks and honest
+critiques all count. Start with **[CONTRIBUTING.md](./CONTRIBUTING.md)** for the
+dev setup, project layout, coding conventions and PR checklist. Every change is
+expected to keep the [honesty docs](#honesty) true: a new feature ships with a
+test, a performance claim ships with a reproducible benchmark.
+
+- 🐛 **Found a bug?** [Open an issue](https://github.com/olbboy/realflow/issues/new/choose).
+- 💡 **Have an idea?** [Start a discussion](https://github.com/olbboy/realflow/discussions) or a feature request.
+- 🔒 **Security issue?** Please report privately — see [SECURITY.md](./SECURITY.md).
+- 🤝 **Be kind.** This project follows the [Contributor Covenant](./CODE_OF_CONDUCT.md).
+
 ## License
 
 [MIT](./LICENSE) — every feature above is free, forever.
+Copyright © 2026 RealFlow contributors.

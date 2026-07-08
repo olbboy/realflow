@@ -44,5 +44,7 @@
     "type": "git",
     "url": "git+https://github.com/olbboy/realflow.git",
     "directory": "packages/compat"
-  }
+  },
+  "homepage": "https://github.com/olbboy/realflow#readme",
+  "bugs": "https://github.com/olbboy/realflow/issues"
 }

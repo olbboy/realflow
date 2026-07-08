@@ -1,0 +1,49 @@
+name: 💡 Feature request
+description: Suggest a new capability or improvement
+labels: ['enhancement', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For open-ended ideas, a [Discussion](https://github.com/olbboy/realflow/discussions)
+        is often a better first step. Use this form when you have a concrete
+        proposal in mind.
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight checklist
+      options:
+        - label: I searched existing issues and discussions and this is not a duplicate.
+          required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the use case or the pain point. What are you trying to do that's hard today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What API or behavior would you like? Sketch a code example if you can.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches, workarounds, or how other libraries solve this.
+    validations:
+      required: false
+  - type: dropdown
+    id: package
+    attributes:
+      label: Which package?
+      options:
+        - '@realflow/react'
+        - '@realflow/core'
+        - '@realflow/compat'
+        - not sure
+    validations:
+      required: false

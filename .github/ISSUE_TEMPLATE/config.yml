@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Questions & ideas
+    url: https://github.com/olbboy/realflow/discussions
+    about: Ask a question, share what you built, or float an idea before filing an issue.
+  - name: 🔒 Report a security vulnerability
+    url: https://github.com/olbboy/realflow/security/advisories/new
+    about: Please report security issues privately, not as a public issue. See SECURITY.md.
+  - name: 📖 Documentation
+    url: https://github.com/olbboy/realflow#documentation
+    about: Getting started, API, migration, performance and integration guides.
