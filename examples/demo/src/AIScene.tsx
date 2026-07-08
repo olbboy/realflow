@@ -151,7 +151,6 @@ export function AIScene({ dark }: { dark: boolean }) {
       clearTimeout(t);
       if (timer.current) clearTimeout(timer.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

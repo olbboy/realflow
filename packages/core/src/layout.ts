@@ -678,7 +678,7 @@ export const incrementalLayout = (
 
   // Rects of the existing (already-placed) nodes, for overlap avoidance.
   const placed: { id: string; x: number; y: number; w: number; h: number }[] = [];
-  let bounds = store.nodesBounds(store.getNodes().filter((n) => !isNew.has(n.id)).map((n) => n.id));
+  const bounds = store.nodesBounds(store.getNodes().filter((n) => !isNew.has(n.id)).map((n) => n.id));
   for (const node of store.getNodes()) {
     if (isNew.has(node.id) || node.parentId) continue;
     const s = store.nodeSize(node.id);

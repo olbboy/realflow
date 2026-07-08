@@ -12,7 +12,6 @@ import {
   type Edge as ReflowEdge,
 } from '@reflow/react';
 import type {
-  Connection,
   NodeChange,
   EdgeChange,
   NodeProps,

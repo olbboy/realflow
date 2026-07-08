@@ -364,7 +364,7 @@ export const describeGraph = (
 /** Mermaid flowchart of the graph — the most token-efficient LLM context. */
 export const toMermaid = (store: FlowStore, direction: 'LR' | 'TD' = 'LR'): string => {
   const lines = [`flowchart ${direction}`];
-  const esc = (s: string): string => s.replace(/["\[\]{}|]/g, ' ').trim();
+  const esc = (s: string): string => s.replace(/["[\]{}|]/g, ' ').trim();
   for (const n of store.getNodes()) {
     const label = asString((n.data as Record<string, unknown>)?.label) ?? n.id;
     lines.push(`  ${n.id}["${esc(label)}"]`);

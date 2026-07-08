@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { Worker } from 'node:worker_threads';
-import { fileURLToPath } from 'node:url';
 import {
   runLayoutJob,
   layoutInWorker,
@@ -9,7 +8,6 @@ import {
   FlowStore,
   type LayoutJob,
   type LayoutResult,
-  type Node,
 } from '@reflow/core';
 
 const ln = (id: string) => ({ id, width: 120, height: 40 });

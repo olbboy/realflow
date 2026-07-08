@@ -19,7 +19,6 @@ import {
   fitRect,
   rectContainsRect,
   rectCenter,
-  rectsIntersect,
   rectUnion,
   sideAnchor,
   snapToGrid,
@@ -944,8 +943,14 @@ export class FlowStore {
   toggleSelection(nodeId?: string, edgeId?: string): void {
     const nodes = new Set(this.selectedNodes);
     const edges = new Set(this.selectedEdges);
-    if (nodeId) nodes.has(nodeId) ? nodes.delete(nodeId) : nodes.add(nodeId);
-    if (edgeId) edges.has(edgeId) ? edges.delete(edgeId) : edges.add(edgeId);
+    if (nodeId) {
+      if (nodes.has(nodeId)) nodes.delete(nodeId);
+      else nodes.add(nodeId);
+    }
+    if (edgeId) {
+      if (edges.has(edgeId)) edges.delete(edgeId);
+      else edges.add(edgeId);
+    }
     this.setSelection(nodes, edges);
   }
 

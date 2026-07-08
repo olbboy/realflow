@@ -3,22 +3,14 @@ import { Collab, Presence, FlowStore, type GraphPatch, type Node } from '@reflow
 
 const n = (id: string, x = 0, y = 0): Node => ({ id, position: { x, y }, data: { label: id } });
 
-/** Wire two Collab instances through a synchronous in-memory channel. */
-function connect(a: Collab, b: Collab) {
-  return {
-    aToB: (p: GraphPatch) => b.receive(p),
-    bToA: (p: GraphPatch) => a.receive(p),
-  };
-}
-
 describe('Collab — two stores converge', () => {
   it('propagates add / update / remove between peers', () => {
     const sA = new FlowStore();
     const sB = new FlowStore();
-    let cA!: Collab;
-    let cB!: Collab;
-    cA = new Collab(sA, { peerId: 'A', broadcast: (p) => cB.receive(p) });
-    cB = new Collab(sB, { peerId: 'B', broadcast: (p) => cA.receive(p) });
+    // Mutual references, so hold the peers in one object rather than two `let`s.
+    const peers: { a?: Collab; b?: Collab } = {};
+    peers.a = new Collab(sA, { peerId: 'A', broadcast: (p) => peers.b!.receive(p) });
+    peers.b = new Collab(sB, { peerId: 'B', broadcast: (p) => peers.a!.receive(p) });
 
     // A adds a node → appears in B.
     sA.addNode(n('x', 10, 20));
@@ -44,20 +36,19 @@ describe('Collab — two stores converge', () => {
     const sA = new FlowStore();
     const sB = new FlowStore();
     let broadcasts = 0;
-    let cA!: Collab;
-    let cB!: Collab;
-    cA = new Collab(sA, {
+    const peers: { a?: Collab; b?: Collab } = {};
+    peers.a = new Collab(sA, {
       peerId: 'A',
       broadcast: (p) => {
         broadcasts++;
-        cB.receive(p);
+        peers.b!.receive(p);
       },
     });
-    cB = new Collab(sB, {
+    peers.b = new Collab(sB, {
       peerId: 'B',
       broadcast: (p) => {
         broadcasts++;
-        cA.receive(p);
+        peers.a!.receive(p);
       },
     });
 
@@ -116,7 +107,7 @@ describe('Collab — two stores converge', () => {
 
 describe('Presence', () => {
   it('tracks remote cursors/selection and prunes stale peers', () => {
-    let changes: number[] = [];
+    const changes: number[] = [];
     const p = new Presence({
       peerId: 'me',
       broadcast: () => {},

@@ -8,7 +8,7 @@
 // import/export/dynamic-import statements (both .js and .d.ts). Same effect as
 // tsc-alias, with zero dependencies.
 import { readdir, readFile, writeFile, stat } from 'node:fs/promises';
-import { join, extname } from 'node:path';
+import { join } from 'node:path';
 
 const HAS_EXT = /\.(js|mjs|cjs|json|css)$/;
 

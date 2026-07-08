@@ -165,7 +165,6 @@ for (const n of SIZES) {
     console.error(`  [edit]     ${n} · ${cfg.key}: pan ${e.panFps}fps${e.moved ? '' : ' [FROZEN!]'}, ${e.domNodes} DOM, ${e.heapMB}MB`);
   }
 }
-const rows = overview;
 
 await browser.close();
 server.close();

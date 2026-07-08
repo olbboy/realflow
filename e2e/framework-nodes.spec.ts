@@ -21,7 +21,7 @@ async function viewportTransform(page: Page) {
 }
 
 test.describe('framework-component nodes', () => {
-  test.beforeEach(async ({}, testInfo) => {
+  test.beforeEach(async (_, testInfo) => {
     test.skip(!!testInfo.project.use.isMobile, 'desktop pointer interactions');
   });
 
