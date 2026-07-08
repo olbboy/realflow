@@ -571,10 +571,12 @@ export type LayoutType = 'layered' | 'tree' | 'force' | 'grid' | 'radial';
 export interface LayoutOptions extends LayeredOptions, ForceOptions, GridOptions, RadialOptions {
   /** Only lay out these nodes (defaults to all root-level nodes). */
   nodes?: string[];
-  /** Animate node movement (ms) — handled by applyLayout. */
+  /** Animate node movement (ms) — used for the position tween and view fit. */
   duration?: number;
   /** Fit the view afterwards. */
   fitView?: boolean;
+  /** Tween nodes from old to new positions (default true). */
+  animate?: boolean;
 }
 
 /** Compute a layout for the store's root-level nodes. */
@@ -749,7 +751,12 @@ export const incrementalLayout = (
 
 /** Convenience: compute + apply + optionally fit the view. */
 export const layout = (store: FlowStore, type: LayoutType, opts: LayoutOptions = {}): void => {
-  applyLayout(store, computeLayout(store, type, opts));
+  const positions = computeLayout(store, type, opts);
+  // Signal the renderer to tween nodes to their new spots (opt out with
+  // `animate: false`). Must fire before applyLayout so the CSS transition is
+  // armed when the new transforms land.
+  if (opts.animate !== false) store.beginPositionAnimation(opts.duration ?? 300);
+  applyLayout(store, positions);
   if (opts.fitView !== false) {
     store.fitView({ duration: opts.duration ?? 300, padding: 0.12 });
   }

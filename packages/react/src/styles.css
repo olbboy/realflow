@@ -168,6 +168,12 @@
   will-change: transform;
 }
 
+/* Node position tween, armed only during a layout animation window so it never
+   interferes with dragging or culling remounts. */
+.rf-container.rf-animating .rf-node {
+  transition: transform var(--rf-anim-ms, 300ms) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .rf-node.rf-draggable {
   cursor: grab;
 }

@@ -259,6 +259,31 @@ export const RealFlow = memo(function RealFlow(props: RealFlowProps) {
     return store.subscribe('viewport', apply);
   }, [store]);
 
+  // ── node position tween: arm a CSS transition for one layout window ──────
+  useEffect(() => {
+    const el = containerRef.current;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const stop = (): void => {
+      if (timer) clearTimeout(timer);
+      el?.classList.remove('rf-animating');
+    };
+    const unsub = store.subscribe('layout-anim', () => {
+      if (!el) return;
+      const ms = store.positionAnimationMs || 300;
+      el.style.setProperty('--rf-anim-ms', `${ms}ms`);
+      el.classList.add('rf-animating');
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => el.classList.remove('rf-animating'), ms + 50);
+    });
+    // Starting a drag or pan cancels the tween so the pointer never lags.
+    el?.addEventListener('pointerdown', stop, true);
+    return () => {
+      stop();
+      unsub();
+      el?.removeEventListener('pointerdown', stop, true);
+    };
+  }, [store]);
+
   // One shared ResizeObserver for all nodes in this flow.
   const measurer = useMemo(() => createMeasurer(store), [store]);
   useEffect(() => () => measurer.disconnect(), [measurer]);

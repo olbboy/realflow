@@ -1060,6 +1060,20 @@ export class FlowStore {
     });
   }
 
+  /** Duration (ms) of the most recently requested node-position tween. */
+  positionAnimationMs = 0;
+
+  /**
+   * Signal that node positions are about to change and should tween. The React
+   * layer subscribes to the `layout-anim` topic and arms a CSS transition on
+   * nodes for `ms`; headless callers can ignore it. Emitted before the
+   * position update so the transition is in place when the new transforms land.
+   */
+  beginPositionAnimation(ms: number): void {
+    this.positionAnimationMs = ms;
+    this.emit('layout-anim');
+  }
+
   /** Flip a node between collapsed and expanded. */
   toggleCollapse(id: string): void {
     const n = this.nodes.get(id);

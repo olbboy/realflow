@@ -36,4 +36,27 @@ describe('layout API', () => {
     expect(api!.getNode('b')!.position).toEqual(before.b);
     expect(api!.getNode('c')!.position.x).toBeGreaterThan(before.b.x);
   });
+
+  it('layout arms the node-position tween on the container', () => {
+    let api: RealFlowApi | null = null;
+    const { container } = render(
+      <RealFlow defaultNodes={nodes} defaultEdges={edges} fitViewOnInit={false} onInit={(a) => (api = a)} />
+    );
+    const el = container.querySelector('.rf-container') as HTMLElement;
+    expect(el).toBeTruthy();
+    expect(el.classList.contains('rf-animating')).toBe(false);
+    act(() => api!.layout('layered', { duration: 200, fitView: false }));
+    expect(el.classList.contains('rf-animating')).toBe(true);
+    expect(el.style.getPropertyValue('--rf-anim-ms')).toBe('200ms');
+  });
+
+  it('layout with animate:false does not arm the tween', () => {
+    let api: RealFlowApi | null = null;
+    const { container } = render(
+      <RealFlow defaultNodes={nodes} defaultEdges={edges} fitViewOnInit={false} onInit={(a) => (api = a)} />
+    );
+    const el = container.querySelector('.rf-container') as HTMLElement;
+    act(() => api!.layout('layered', { animate: false, fitView: false }));
+    expect(el.classList.contains('rf-animating')).toBe(false);
+  });
 });
