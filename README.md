@@ -1,28 +1,31 @@
 <div align="center">
 
-# ◆ ReFlow
+# ◆ RealFlow
 
 **Node-based UIs for React, reimagined.**
 
-The fastest, most complete open source library for building flow editors,
-workflow builders, data pipelines and node graphs with React —
-with the features other libraries put behind a paywall built in and free.
+The fastest open source library for building flow editors, workflow
+builders, data pipelines and node graphs with React — with the **engine**
+features other libraries put behind a paywall (undo/redo, viewport culling,
+auto-layout, edge routing, collaboration) built in and free. Not a strict
+superset of React Flow Pro — [GAPS.md](./GAPS.md) is honest about what it
+doesn't do yet.
 
-[Quick start](#quick-start) · [Why ReFlow](#why-reflow) · [Features](#features) · [Docs](./docs/getting-started.md) · [Live demo](#run-the-demo)
+[Quick start](#quick-start) · [Why RealFlow](#why-realflow) · [Features](#features) · [Docs](./docs/getting-started.md) · [Live demo](#run-the-demo)
 
-![ReFlow showcase](./docs/assets/showcase-light.png)
+![RealFlow showcase](./docs/assets/showcase-light.png)
 
 </div>
 
 ---
 
-## Why ReFlow
+## Why RealFlow
 
-React Flow (xyflow) made node-based UIs mainstream. ReFlow starts where it
+React Flow (xyflow) made node-based UIs mainstream. RealFlow starts where it
 stops — every row in this table is a deliberate design decision, not an
 add-on:
 
-| | **ReFlow** | React Flow (xyflow) |
+| | **RealFlow** | React Flow (xyflow) |
 | --- | --- | --- |
 | Undo / redo | ✅ Built in, transactional, drag-coalescing | 💰 Pro example, DIY |
 | Auto-layout | ✅ Built in: layered, tree, force, radial, grid — zero deps | 💰 Pro example + dagre/elkjs |
@@ -40,7 +43,7 @@ add-on:
 | NodeResizer / NodeToolbar / edge reconnect | ✅ Built in | ✅ (some Pro) |
 | Accessibility | ✅ Focusable nodes, aria, spatial keyboard nav | ⚠️ Partial |
 | Graph algorithms | ✅ Topo sort, cycle detect, components, shortest path, ancestors | ⚠️ `getIncomers` / `getOutgoers` |
-| State management | ✅ `useReflow()` — no reducers, no change handlers | ⚠️ `onNodesChange` + `applyNodeChanges` boilerplate |
+| State management | ✅ `useRealFlow()` — no reducers, no change handlers | ⚠️ `onNodesChange` + `applyNodeChanges` boilerplate |
 | Headless core | ✅ `@realflow/core` — zero dependencies, runs anywhere | ⚠️ `@xyflow/system` (depends on d3-zoom/d3-drag) |
 | Default look | ✅ Polished theme, dark mode, animations out of the box | ⚠️ Gray boxes |
 | License | ✅ MIT, everything free | MIT + paid Pro examples |
@@ -51,15 +54,18 @@ verified to actually move the viewport — see [BENCHMARKS.md](./benchmarks/BENC
 
 | 10,000 nodes, zoomed-in editing | Pan FPS | DOM nodes | Heap |
 | --- | ---: | ---: | ---: |
-| **ReFlow** | **43** | **143** | **18 MB** |
+| **RealFlow** | **43** | **143** | **18 MB** |
 | React Flow (default) | 4 | 10,000 | 239 MB |
 | React Flow (`onlyRenderVisibleElements`) | 9 | 49 | 34 MB |
 
-ReFlow culls off-screen nodes **by default** via a spatial hash index, so a
-10k-node graph stays interactive while using **~13× less memory**. When every
-node is genuinely on-screen (zoomed all the way out), both libraries are
-paint-bound and roughly tied — ReFlow stays marginally ahead at half the
-memory. Numbers are honest and reproducible, not marketing.
+RealFlow culls off-screen nodes **by default** via a spatial hash index, so a
+10k-node graph stays interactive while using **~13× less memory than React
+Flow's default** (culling off). Against React Flow's own
+`onlyRenderVisibleElements`, memory is close — RealFlow's durable edge there is
+**FPS** (zero-render pan), not memory. When every node is genuinely on-screen
+(zoomed all the way out), both libraries are paint-bound and roughly tied —
+RealFlow at about half the memory. Numbers are honest and reproducible, not
+marketing (full audit: [AUDIT.md](./AUDIT.md)).
 
 ## Quick start
 
@@ -68,7 +74,7 @@ npm install @realflow/react
 ```
 
 ```tsx
-import { ReFlow, Background, Controls, MiniMap } from '@realflow/react';
+import { RealFlow, Background, Controls, MiniMap } from '@realflow/react';
 import '@realflow/react/styles.css';
 
 const nodes = [
@@ -80,11 +86,11 @@ const edges = [{ id: 'e1', source: 'a', target: 'b', animated: true }];
 export default function App() {
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
-      <ReFlow defaultNodes={nodes} defaultEdges={edges}>
+      <RealFlow defaultNodes={nodes} defaultEdges={edges}>
         <Background />
         <Controls />
         <MiniMap />
-      </ReFlow>
+      </RealFlow>
     </div>
   );
 }
@@ -97,10 +103,10 @@ No `onNodesChange`, no `applyNodeChanges`, no state wiring.
 ### Drive it imperatively
 
 ```tsx
-import { useReflow } from '@realflow/react';
+import { useRealFlow } from '@realflow/react';
 
 function Toolbar() {
-  const flow = useReflow();
+  const flow = useRealFlow();
   return (
     <>
       <button onClick={() => flow.addNode({ id: crypto.randomUUID(), position: { x: 0, y: 0 }, data: { label: 'New' } })}>
@@ -188,7 +194,7 @@ function MetricNode({ data, selected }: NodeProps<{ kpi: string }>) {
     </div>
   );
 }
-<ReFlow nodeTypes={{ metric: MetricNode }} … />
+<RealFlow nodeTypes={{ metric: MetricNode }} … />
 ```
 
 Handles are measured automatically — put them anywhere in your markup and
@@ -253,7 +259,7 @@ MUI ([integration guide](./docs/integrations.md)).
 ### 🔄 Migrating from React Flow?
 
 `@realflow/compat` is a drop-in adapter — change your imports and an existing
-React Flow app runs on ReFlow's engine (undo/redo and culling included, free):
+React Flow app runs on RealFlow's engine (undo/redo and culling included, free):
 
 ```diff
 - import { ReactFlow, Handle, Position, useReactFlow } from '@xyflow/react';
@@ -269,23 +275,25 @@ React Flow app runs on ReFlow's engine (undo/redo and culling included, free):
 | Package | What it is |
 | --- | --- |
 | [`@realflow/core`](./packages/core) | Headless engine: store, spatial index, paths, layouts, history, algorithms, AI ops. Zero dependencies. |
-| [`@realflow/react`](./packages/react) | React renderer: `<ReFlow>`, components, hooks, theme. Depends only on core + React. |
+| [`@realflow/react`](./packages/react) | React renderer: `<RealFlow>`, components, hooks, theme. Depends only on core + React. |
 | [`@realflow/compat`](./packages/compat) | React Flow (xyflow) API compatibility adapter for migrations. |
 
 ## Honesty
 
 Every performance claim here is backed by a reproducible benchmark, and every
-feature by a passing test. [CLAIMS.md](./CLAIMS.md) is the line-by-line audit
-of this README against the code, and lists the honest limitations plainly
-(SSR render test, shadow-DOM isolation, and a WebGL renderer for the
-everything-on-screen case). The UI-frameworks demo is built on the **real**
+feature by a passing test. Three docs keep it honest:
+[CLAIMS.md](./CLAIMS.md) audits this README line-by-line against the code;
+[AUDIT.md](./AUDIT.md) is the adversarial audit (methodology, reproduced
+benchmark, claim-by-claim KEEP/FIX verdicts); [GAPS.md](./GAPS.md) is the
+head-to-head against all 16 React Flow Pro examples and names plainly the ones
+React Flow still wins. The UI-frameworks demo is built on the **real**
 shadcn/ui (Radix) and Base UI packages, and lint, cross-browser E2E and
 visual-regression snapshots all run in CI.
 
 ## Run the demo
 
 ```bash
-git clone https://github.com/olbboy/reflow && cd reflow
+git clone https://github.com/olbboy/realflow && cd realflow
 npm install
 npm run dev   # showcase + 1k/5k/10k stress scenes at http://localhost:5173
 ```
