@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Handle, useReflow, type NodeProps } from '@reflow/react';
+import { Handle, useReflow, type NodeProps } from '@realflow/react';
 import { MoreHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';

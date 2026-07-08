@@ -9,7 +9,7 @@ import {
   snapToGrid,
   visibleRect,
   zoomAt,
-} from '@reflow/core';
+} from '@realflow/core';
 
 describe('geometry', () => {
   it('screen/flow round trip', () => {

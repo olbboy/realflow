@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ReFlow, Background, Panel, RemoteCursors, FlowContext } from '@reflow/react';
-import { Collab, Presence, FlowStore, screenToFlow, type GraphPatch, type PeerState } from '@reflow/core';
+import { ReFlow, Background, Panel, RemoteCursors, FlowContext } from '@realflow/react';
+import { Collab, Presence, FlowStore, screenToFlow, type GraphPatch, type PeerState } from '@realflow/core';
 
 /**
  * Two live canvases sharing edits + cursors through an in-memory channel —

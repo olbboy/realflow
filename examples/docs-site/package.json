@@ -9,8 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@reflow/core": "0.1.0",
-    "@reflow/react": "0.1.0",
+    "@realflow/core": "0.1.0",
+    "@realflow/react": "0.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

@@ -36,15 +36,15 @@ await flow.layoutAsync('force', { iterations: 400 });
 
 Without a worker it runs the same pure job and resolves on completion. To
 truly offload, run `runLayoutJob` in a worker and apply the result — the
-pieces are exported from `@reflow/core`:
+pieces are exported from `@realflow/core`:
 
 ```ts
 // worker.ts
-import { layoutWorkerHandler } from '@reflow/core';
+import { layoutWorkerHandler } from '@realflow/core';
 self.onmessage = (e) => self.postMessage(layoutWorkerHandler(e.data));
 
 // app.ts
-import { layoutInWorker, applyLayout } from '@reflow/core';
+import { layoutInWorker, applyLayout } from '@realflow/core';
 const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
 
 const { positions } = await layoutInWorker(worker, {

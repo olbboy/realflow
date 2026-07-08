@@ -7,7 +7,7 @@ import {
   ReFlow,
   type Edge,
   type Node,
-} from '@reflow/react';
+} from '@realflow/react';
 
 /**
  * Orthogonal edges route AROUND nodes — drag the obstacle nodes and watch

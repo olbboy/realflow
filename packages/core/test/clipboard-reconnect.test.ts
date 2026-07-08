@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FlowStore, type Edge, type Node } from '@reflow/core';
+import { FlowStore, type Edge, type Node } from '@realflow/core';
 
 const n = (id: string, x = 0, y = 0, extra: Partial<Node> = {}): Node => ({
   id,

@@ -1,5 +1,5 @@
 {
-  "name": "@reflow/react",
+  "name": "@realflow/react",
   "version": "0.1.0",
   "description": "The fastest, most beautiful React library for building node-based UIs. Fine-grained rendering, built-in auto-layout, undo/redo, alignment guides \u2014 free and open source.",
   "license": "MIT",
@@ -26,7 +26,7 @@
     "build": "tsc -p tsconfig.build.json && node ../../scripts/append-js-extensions.mjs dist && cp src/styles.css dist/styles.css"
   },
   "dependencies": {
-    "@reflow/core": "0.1.0"
+    "@realflow/core": "0.1.0"
   },
   "peerDependencies": {
     "react": ">=18",

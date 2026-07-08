@@ -6,7 +6,7 @@ A node type is just a React component. Register it in `nodeTypes` and
 reference it with `node.type`:
 
 ```tsx
-import { Handle, type NodeProps } from '@reflow/react';
+import { Handle, type NodeProps } from '@realflow/react';
 
 interface MetricData {
   label: string;
@@ -89,7 +89,7 @@ function Splitter() {
 Edge components receive precomputed geometry — no path math needed:
 
 ```tsx
-import type { EdgeProps } from '@reflow/react';
+import type { EdgeProps } from '@realflow/react';
 
 function GlowEdge({ path, labelX, labelY, edge, selected }: EdgeProps) {
   return (
@@ -106,7 +106,7 @@ function GlowEdge({ path, labelX, labelY, edge, selected }: EdgeProps) {
 
 Built-in path types: `bezier` (default), `smoothstep`, `step`, `straight`.
 Need raw waypoints for orthogonal routing? `stepWaypoints()` from
-`@reflow/core` returns them.
+`@realflow/core` returns them.
 
 ## Groups / subflows
 
@@ -130,7 +130,7 @@ const nodes = [
 Drop `NodeResizer` or `NodeToolbar` inside a custom node:
 
 ```tsx
-import { NodeResizer, NodeToolbar, type NodeProps } from '@reflow/react';
+import { NodeResizer, NodeToolbar, type NodeProps } from '@realflow/react';
 
 function CardNode({ selected }: NodeProps) {
   return (

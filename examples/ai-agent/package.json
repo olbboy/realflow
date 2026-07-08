@@ -8,6 +8,6 @@
     "generate": "node generate.mjs"
   },
   "dependencies": {
-    "@reflow/core": "0.1.0"
+    "@realflow/core": "0.1.0"
   }
 }

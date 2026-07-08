@@ -3,7 +3,7 @@
 // The packages compile with `moduleResolution: bundler`, so tsc emits
 // extensionless relative imports (`from './store'`). Bundlers (Vite/Vitest)
 // resolve those, but Node's native ESM loader requires an explicit extension,
-// so the *published* package would fail `import '@reflow/core'` in plain Node.
+// so the *published* package would fail `import '@realflow/core'` in plain Node.
 // This walks the built output and appends `.js` to every relative specifier in
 // import/export/dynamic-import statements (both .js and .d.ts). Same effect as
 // tsc-alias, with zero dependencies.

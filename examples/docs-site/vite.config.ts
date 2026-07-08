@@ -7,9 +7,9 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: [
-      { find: '@reflow/react/styles.css', replacement: resolve(__dirname, '../../packages/react/src/styles.css') },
-      { find: '@reflow/react', replacement: resolve(__dirname, '../../packages/react/src/index.ts') },
-      { find: '@reflow/core', replacement: resolve(__dirname, '../../packages/core/src/index.ts') },
+      { find: '@realflow/react/styles.css', replacement: resolve(__dirname, '../../packages/react/src/styles.css') },
+      { find: '@realflow/react', replacement: resolve(__dirname, '../../packages/react/src/index.ts') },
+      { find: '@realflow/core', replacement: resolve(__dirname, '../../packages/core/src/index.ts') },
     ],
   },
 });

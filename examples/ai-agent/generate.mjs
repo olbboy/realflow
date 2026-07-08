@@ -1,11 +1,11 @@
 // Live AI → ReFlow demo. Reads a goal, asks whichever provider you have a key
-// for, applies the returned operations to a headless @reflow/core store, and
+// for, applies the returned operations to a headless @realflow/core store, and
 // shows the graph before/after plus a single transactional undo.
 //
 //   GLM_API_KEY=...     node generate.mjs "add a retry step after fetch"
 //   GEMINI_API_KEY=...  node generate.mjs
 //   ANTHROPIC_API_KEY=... node generate.mjs
-import { FlowStore, toMermaid } from '@reflow/core';
+import { FlowStore, toMermaid } from '@realflow/core';
 import { runAgentTurn } from './src/pipeline.mjs';
 import { detectProvider } from './src/providers.mjs';
 

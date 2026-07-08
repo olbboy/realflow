@@ -1,4 +1,4 @@
-import { ReFlow, Background, Panel, useReflow, type LayoutType } from '@reflow/react';
+import { ReFlow, Background, Panel, useReflow, type LayoutType } from '@realflow/react';
 
 const ids = ['root', 'a', 'b', 'c', 'd', 'e', 'f'];
 const nodes = ids.map((id, i) => ({ id, position: { x: (i % 3) * 40, y: i * 20 }, data: { label: id } }));

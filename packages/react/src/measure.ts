@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { FlowStore, HandleInfo } from '@reflow/core';
+import type { FlowStore, HandleInfo } from '@realflow/core';
 
 export type HandleSpec = Omit<HandleInfo, 'x' | 'y'>;
 

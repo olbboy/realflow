@@ -9,8 +9,8 @@ import {
   useReflow,
   type NodeProps,
   type ReflowApi,
-} from '@reflow/react';
-import { FlowStore, type Node } from '@reflow/core';
+} from '@realflow/react';
+import { FlowStore, type Node } from '@realflow/core';
 
 afterEach(cleanup);
 

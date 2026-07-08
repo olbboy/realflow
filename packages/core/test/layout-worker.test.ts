@@ -8,7 +8,7 @@ import {
   FlowStore,
   type LayoutJob,
   type LayoutResult,
-} from '@reflow/core';
+} from '@realflow/core';
 
 const ln = (id: string) => ({ id, width: 120, height: 40 });
 
@@ -37,7 +37,7 @@ describe('runLayoutJob (pure, worker-executable)', () => {
 
 describe('layoutInWorker — runs off the main thread (worker_threads)', () => {
   it('computes a big layout in a real worker and returns positions', async () => {
-    // A worker that imports the built @reflow/core and runs the job. We point
+    // A worker that imports the built @realflow/core and runs the job. We point
     // it at the source via a tiny inline module using tsx's loader is complex;
     // instead we run runLayoutJob through the transport with a worker that
     // executes the same code path.

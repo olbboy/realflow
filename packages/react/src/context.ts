@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { FlowStore } from '@reflow/core';
+import type { FlowStore } from '@realflow/core';
 
 export const FlowContext = createContext<FlowStore | null>(null);
 

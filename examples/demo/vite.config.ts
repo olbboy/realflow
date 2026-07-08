@@ -7,15 +7,15 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        find: '@reflow/react/styles.css',
+        find: '@realflow/react/styles.css',
         replacement: resolve(__dirname, '../../packages/react/src/styles.css'),
       },
       {
-        find: '@reflow/react',
+        find: '@realflow/react',
         replacement: resolve(__dirname, '../../packages/react/src/index.ts'),
       },
       {
-        find: '@reflow/core',
+        find: '@realflow/core',
         replacement: resolve(__dirname, '../../packages/core/src/index.ts'),
       },
     ],

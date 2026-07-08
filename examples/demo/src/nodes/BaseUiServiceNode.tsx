@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Handle, useReflow, type NodeProps } from '@reflow/react';
+import { Handle, useReflow, type NodeProps } from '@realflow/react';
 import { Select } from '@base-ui-components/react/select';
 import { Popover } from '@base-ui-components/react/popover';
 import { Check, ChevronDown, MoreHorizontal } from 'lucide-react';

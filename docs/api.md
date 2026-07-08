@@ -3,7 +3,7 @@
 ## Architecture
 
 ```
-@reflow/core            @reflow/react
+@realflow/core            @realflow/react
 ┌─────────────────┐     ┌──────────────────────────┐
 │ FlowStore        │◄────│ <ReFlow> renderer         │
 │  · nodes/edges   │     │  · NodeView (per-node sub)│
@@ -35,7 +35,7 @@ const unsub = store.subscribe('node:a', () => console.log(store.getNode('a')));
 ## FlowStore
 
 ```ts
-import { FlowStore } from '@reflow/core';
+import { FlowStore } from '@realflow/core';
 
 const store = new FlowStore({
   nodes, edges,
@@ -71,7 +71,7 @@ Selected methods (all history-aware unless noted):
 ## Layouts
 
 ```ts
-import { layout, computeLayout, applyLayout } from '@reflow/core';
+import { layout, computeLayout, applyLayout } from '@realflow/core';
 
 layout(store, 'layered', { direction: 'LR', nodeGap: 48, rankGap: 96 });
 const positions = computeLayout(store, 'force', { linkDistance: 200 }); // Map<id, XY>
@@ -98,7 +98,7 @@ getConnectedEdges(store, ids)
 ## Path math
 
 ```ts
-import { bezierPath, smoothStepPath, stepPath, straightPath, stepWaypoints } from '@reflow/core';
+import { bezierPath, smoothStepPath, stepPath, straightPath, stepWaypoints } from '@realflow/core';
 
 const { d, label } = smoothStepPath({
   source: { x: 0, y: 0 }, sourceSide: 'right',
@@ -125,7 +125,7 @@ Full token list in [`packages/react/src/styles.css`](../packages/react/src/style
 
 ## SSR
 
-`@reflow/core` is DOM-free. `@reflow/react` guards all browser APIs, so
+`@realflow/core` is DOM-free. `@realflow/react` guards all browser APIs, so
 `<ReFlow>` renders on the server without throwing; measurements and culling
 kick in on mount. Server rendering is guarded in code but not yet covered by
 an automated SSR render test — see [CLAIMS.md](../CLAIMS.md).

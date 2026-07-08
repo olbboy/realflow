@@ -9,7 +9,7 @@ contain breaking changes to APIs marked **experimental** in
 ## [Unreleased]
 
 ### Added
-- **`@reflow/compat`** — a React Flow (xyflow) API-compatibility layer. Migrate
+- **`@realflow/compat`** — a React Flow (xyflow) API-compatibility layer. Migrate
   an existing app by changing imports: `ReactFlow`, `Handle` (`type`/`position`),
   `Position`, `MarkerType`, `useReactFlow`, `useNodesState`/`useEdgesState`,
   `applyNodeChanges`/`applyEdgeChanges`, `addEdge`, `reconnectEdge`,
@@ -43,7 +43,7 @@ contain breaking changes to APIs marked **experimental** in
 
 ### Fixed
 - **Built packages now load under native Node ESM.** `tsc` emitted extensionless
-  relative imports, so `import '@reflow/core'` threw `ERR_MODULE_NOT_FOUND` in
+  relative imports, so `import '@realflow/core'` threw `ERR_MODULE_NOT_FOUND` in
   plain Node even though bundlers resolved it. A post-build codemod appends `.js`
   to relative specifiers in the emitted output, and CI now `import()`s each built
   package under Node so it can't regress.
@@ -70,7 +70,7 @@ contain breaking changes to APIs marked **experimental** in
 
 ## [0.1.0] — initial
 
-- `@reflow/core`: headless engine — reactive store, spatial-hash culling, edge
+- `@realflow/core`: headless engine — reactive store, spatial-hash culling, edge
   path math, five auto-layouts, undo/redo, graph algorithms, AI operations layer.
-- `@reflow/react`: renderer — `<ReFlow>`, `Handle`, `Background`, `MiniMap`
+- `@realflow/react`: renderer — `<ReFlow>`, `Handle`, `Background`, `MiniMap`
   (canvas), `Controls`, `Panel`, hooks, light/dark theme.

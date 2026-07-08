@@ -1,4 +1,4 @@
-import { ReFlow, Background, Handle, useReflow, useNodeId, type NodeProps } from '@reflow/react';
+import { ReFlow, Background, Handle, useReflow, useNodeId, type NodeProps } from '@realflow/react';
 
 // A custom node that edits its own data — no reducers, no change handlers.
 function CounterNode({ data }: NodeProps) {

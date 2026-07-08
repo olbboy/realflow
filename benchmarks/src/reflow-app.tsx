@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
-import { ReFlow, Background, type Node, type Edge } from '@reflow/react';
-import '@reflow/react/styles.css';
+import { ReFlow, Background, type Node, type Edge } from '@realflow/react';
+import '@realflow/react/styles.css';
 import { makeScene, sceneSizeFromUrl } from './scene';
 
 const scene = makeScene(sceneSizeFromUrl());

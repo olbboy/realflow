@@ -1,12 +1,12 @@
 /**
- * @reflow/compat — React Flow (xyflow) API compatibility layer.
+ * @realflow/compat — React Flow (xyflow) API compatibility layer.
  *
  * Migrate an existing React Flow app by changing the import:
  *
  *   - import { ReactFlow, Handle, Position, useReactFlow } from '@xyflow/react';
- *   + import { ReactFlow, Handle, Position, useReactFlow } from '@reflow/compat';
+ *   + import { ReactFlow, Handle, Position, useReactFlow } from '@realflow/compat';
  *   - import '@xyflow/react/dist/style.css';
- *   + import '@reflow/compat/style.css';
+ *   + import '@realflow/compat/style.css';
  *
  * The adapter maps React Flow's controlled `onNodesChange(changes)` model,
  * `<Handle type position>`, `useReactFlow()`, `applyNodeChanges`,
@@ -48,8 +48,8 @@ export { Handle } from './Handle';
 export { ReactFlow, ReactFlowProvider, useReactFlow } from './ReactFlow';
 
 // These ReFlow components are already API-compatible with React Flow's.
-export { Background, MiniMap, Controls, Panel } from '@reflow/react';
+export { Background, MiniMap, Controls, Panel } from '@realflow/react';
 // React Flow also ships these; the ReFlow versions have equivalent behavior.
-export { NodeResizer, NodeToolbar } from '@reflow/react';
+export { NodeResizer, NodeToolbar } from '@realflow/react';
 // React Flow-compatible selection hook.
-export { useOnSelectionChange } from '@reflow/react';
+export { useOnSelectionChange } from '@realflow/react';

@@ -12,7 +12,7 @@ canvas.
 ## The operation format
 
 ```ts
-import { applyOperations, type FlowOperation } from '@reflow/react'; // or @reflow/core
+import { applyOperations, type FlowOperation } from '@realflow/react'; // or @realflow/core
 
 const ops: FlowOperation[] = [
   { op: 'add_node', id: 'fetch', label: 'Fetch data', type: 'action' },
@@ -48,7 +48,7 @@ Full op list: `add_node` · `update_node` · `remove_node` · `connect` ·
 prompt fragment teaching the format:
 
 ```ts
-import { operationSchema, OPERATIONS_PROMPT, describeGraph } from '@reflow/core';
+import { operationSchema, OPERATIONS_PROMPT, describeGraph } from '@realflow/core';
 import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic();
@@ -141,11 +141,11 @@ noise), and one `transact` batch per agent "turn" for structural edits.
 
 ## Server-side / headless
 
-`@reflow/core` has zero dependencies and no DOM requirement. Validate an
+`@realflow/core` has zero dependencies and no DOM requirement. Validate an
 agent's proposed graph on the server before it ever reaches a client:
 
 ```ts
-import { FlowStore, applyOperations, hasCycle, topologicalSort } from '@reflow/core';
+import { FlowStore, applyOperations, hasCycle, topologicalSort } from '@realflow/core';
 
 const sim = new FlowStore({ preventCycles: true });
 const { errors } = applyOperations(sim, proposedOps);

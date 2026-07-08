@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest';
 import { act, cleanup, render } from '@testing-library/react';
-import { ReFlow, type ReflowApi } from '@reflow/react';
-import type { Node, Edge } from '@reflow/core';
+import { ReFlow, type ReflowApi } from '@realflow/react';
+import type { Node, Edge } from '@realflow/core';
 
 afterEach(cleanup);
 

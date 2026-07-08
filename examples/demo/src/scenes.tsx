@@ -1,5 +1,5 @@
-import type { Edge, Node } from '@reflow/react';
-import { Handle, type NodeProps } from '@reflow/react';
+import type { Edge, Node } from '@realflow/react';
+import { Handle, type NodeProps } from '@realflow/react';
 
 /* ── custom node types ─────────────────────────────────────────────── */
 

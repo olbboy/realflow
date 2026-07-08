@@ -68,7 +68,7 @@ Reproduce with `npm run dev`, the 10k tab, and the FPS meter — or
 
 ## Headless / server-side
 
-`@reflow/core` has zero dependencies and no DOM requirements: run layouts,
+`@realflow/core` has zero dependencies and no DOM requirements: run layouts,
 validation and graph algorithms in Node.js, workers, or tests at native
 speed. The `layeredLayout` of 1000 nodes completes in well under 2 s
 (unit-tested bound; typically ~50 ms).

@@ -3,8 +3,8 @@
 // The same prompt + parser work across GLM (z.ai, OpenAI-compatible), Gemini
 // (Google structured output) and Anthropic. Whichever API key is present in the
 // environment decides the provider. No SDKs — plain fetch — so this file has
-// zero dependencies beyond @reflow/core and the Node built-in fetch.
-import { describeGraph, OPERATIONS_PROMPT } from '@reflow/core';
+// zero dependencies beyond @realflow/core and the Node built-in fetch.
+import { describeGraph, OPERATIONS_PROMPT } from '@realflow/core';
 
 /** Pick a provider from an explicit override or whichever key is set. */
 export function detectProvider(env = process.env) {

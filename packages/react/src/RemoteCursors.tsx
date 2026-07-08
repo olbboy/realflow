@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import type { PeerState } from '@reflow/core';
+import type { PeerState } from '@realflow/core';
 import { useViewport } from './hooks';
 
 export interface RemoteCursorsProps {
@@ -11,7 +11,7 @@ export interface RemoteCursorsProps {
 
 /**
  * Renders remote collaborators' cursors (and name labels) in screen space,
- * tracking pan/zoom. Pair with `Presence` from `@reflow/core`.
+ * tracking pan/zoom. Pair with `Presence` from `@realflow/core`.
  */
 export const RemoteCursors = memo(function RemoteCursors({
   peers,

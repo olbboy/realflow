@@ -10,7 +10,7 @@ import {
   type FlowOperation,
   type NodeProps,
   type ReflowApi,
-} from '@reflow/react';
+} from '@realflow/react';
 
 /** Node type used by the copilot: label + live execution status. */
 function AgentNode({ data }: NodeProps) {

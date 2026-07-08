@@ -10,7 +10,7 @@ import {
   type LayoutEdge,
   type LayoutNode,
   type Node,
-} from '@reflow/core';
+} from '@realflow/core';
 
 const ln = (id: string): LayoutNode => ({ id, width: 100, height: 40 });
 

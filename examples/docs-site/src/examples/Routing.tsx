@@ -1,4 +1,4 @@
-import { ReFlow, Background, Panel } from '@reflow/react';
+import { ReFlow, Background, Panel } from '@realflow/react';
 
 // Orthogonal edges route AROUND obstacle nodes — drag the middle nodes.
 const nodes = [

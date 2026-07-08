@@ -54,7 +54,7 @@ Legend: ✅ verified (code + test/measurement) · 🟡 partial · ❌ not yet
 | Orthogonal routing with obstacle avoidance | ✅ | `core/routing.ts` (Hanan-grid A* + turn penalty); `routing.test.ts` (7) |
 | Real-time collaboration + presence, Yjs-ready | ✅ | `core/collab.ts` (Lamport-clock LWW); `collab.test.ts` (6) + `collab-yjs.test.ts` (real Yjs interop) |
 | Worker + incremental auto-layout | ✅ | `core/layout-worker.ts`; `layout-worker.test.ts` (real `worker_threads`) |
-| React Flow API compat adapter | ✅ | `@reflow/compat`; `compat.test.tsx` (9) + `docs/migration.md` |
+| React Flow API compat adapter | ✅ | `@realflow/compat`; `compat.test.tsx` (9) + `docs/migration.md` |
 | Works with Tailwind / shadcn / Radix / Base UI | ✅ | demo nodes from **real** shadcn (Radix) + **real** Base UI; `e2e/framework-nodes.spec.ts` (5 × Chromium/Firefox/WebKit) |
 
 ## Release & CI

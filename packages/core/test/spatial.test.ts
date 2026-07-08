@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SpatialIndex } from '@reflow/core';
+import { SpatialIndex } from '@realflow/core';
 
 describe('SpatialIndex', () => {
   it('query returns intersecting ids only', () => {

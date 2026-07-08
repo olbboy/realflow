@@ -1,7 +1,7 @@
 import { memo, useRef } from 'react';
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
-import type { EdgeMarker, Side } from '@reflow/core';
-import { edgePath, roundedPath, routeOrthogonal, screenToFlow } from '@reflow/core';
+import type { EdgeMarker, Side } from '@realflow/core';
+import { edgePath, roundedPath, routeOrthogonal, screenToFlow } from '@realflow/core';
 import { useFlowStore } from './context';
 import { useConfig, useContainer } from './config';
 import { useConnection, useFlowSelector } from './hooks';

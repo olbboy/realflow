@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { FlowStore, applyOperations } from '@reflow/core';
+import { FlowStore, applyOperations } from '@realflow/core';
 import { detectProvider, extractOperations, generateOperations } from '../src/providers.mjs';
 import { runAgentTurn } from '../src/pipeline.mjs';
 

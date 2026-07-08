@@ -7,7 +7,7 @@ ReFlow is pre-1.0. This document is the contract for what may change.
 - **Experimental** — may change in any minor release. Pin exact versions if
   you depend on these.
 
-## `@reflow/core`
+## `@realflow/core`
 
 | API | Status |
 | --- | --- |
@@ -30,7 +30,7 @@ ReFlow is pre-1.0. This document is the contract for what may change.
 | `nearestNodeInDirection`, `startReconnect` | Experimental |
 | `store.subscribe` topic strings | Stable set, may **add** new topics |
 
-## `@reflow/react`
+## `@realflow/react`
 
 | API | Status |
 | --- | --- |
@@ -45,7 +45,7 @@ ReFlow is pre-1.0. This document is the contract for what may change.
 | CSS class names (`.rf-*`) | Experimental — theme via CSS **variables**, not class overrides |
 | CSS variables (`--rf-*`) | Stable |
 
-## `@reflow/compat`
+## `@realflow/compat`
 
 | API | Status |
 | --- | --- |
@@ -53,6 +53,6 @@ ReFlow is pre-1.0. This document is the contract for what may change.
 
 ## Versioning of the three packages
 
-`@reflow/core`, `@reflow/react`, and `@reflow/compat` are versioned together
-and released in lockstep. `@reflow/react` depends on the exact matching
-`@reflow/core`; `@reflow/compat` on both.
+`@realflow/core`, `@realflow/react`, and `@realflow/compat` are versioned together
+and released in lockstep. `@realflow/react` depends on the exact matching
+`@realflow/core`; `@realflow/compat` on both.

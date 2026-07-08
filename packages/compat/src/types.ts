@@ -1,5 +1,5 @@
 import type { ComponentType, CSSProperties, ReactNode } from 'react';
-import type { Edge as CoreEdge, Node as CoreNode, EdgeMarker } from '@reflow/core';
+import type { Edge as CoreEdge, Node as CoreNode, EdgeMarker } from '@realflow/core';
 import type { Position } from './enums';
 
 export interface XYPosition {

@@ -18,7 +18,7 @@ import {
   type Node,
   type Edge,
   type Connection,
-} from '@reflow/compat';
+} from '@realflow/compat';
 
 afterEach(cleanup);
 
@@ -29,7 +29,7 @@ const initialNodes: Node[] = [
 ];
 const initialEdges: Edge[] = [{ id: 'e1-2', source: '1', target: '2' }];
 
-describe('@reflow/compat — React Flow API surface', () => {
+describe('@realflow/compat — React Flow API surface', () => {
   it('Position/MarkerType enums match React Flow values', () => {
     expect(Position.Left).toBe('left');
     expect(Position.Right).toBe('right');

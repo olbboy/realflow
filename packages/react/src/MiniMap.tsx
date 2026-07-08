@@ -1,7 +1,7 @@
 import { memo, useCallback, useEffect, useRef } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
-import type { Rect } from '@reflow/core';
-import { rectUnion, visibleRect } from '@reflow/core';
+import type { Rect } from '@realflow/core';
+import { rectUnion, visibleRect } from '@realflow/core';
 import { useFlowStore } from './context';
 import { Panel, type PanelPosition } from './Panel';
 

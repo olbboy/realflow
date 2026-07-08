@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { ReFlow, Background, Panel, useReflow, applyOperations, type FlowOperation } from '@reflow/react';
+import { ReFlow, Background, Panel, useReflow, applyOperations, type FlowOperation } from '@realflow/react';
 
 // Build a graph the way an AI agent would: a stream of JSON operations.
 const script: FlowOperation[] = [

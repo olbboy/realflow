@@ -1,6 +1,6 @@
 # Real-time collaboration
 
-ReFlow ships a transport-agnostic collaboration layer in `@reflow/core` — no
+ReFlow ships a transport-agnostic collaboration layer in `@realflow/core` — no
 mandatory dependency, no lock-in. `Collab` captures local graph changes as
 element-level patches and applies remote ones, converging via Lamport-clock
 last-write-wins. Wire it to **any** transport: WebSocket, `BroadcastChannel`,
@@ -9,7 +9,7 @@ WebRTC, or a Yjs `Y.Doc`.
 ## Minimal (BroadcastChannel, same-origin tabs)
 
 ```ts
-import { Collab, FlowStore } from '@reflow/core';
+import { Collab, FlowStore } from '@realflow/core';
 
 const channel = new BroadcastChannel('my-flow');
 const collab = new Collab(store, {
@@ -36,13 +36,13 @@ Guarantees:
 ## With Yjs (production CRDT + offline)
 
 For offline support, large sessions, and battle-tested conflict resolution,
-bridge `Collab` to a Yjs `Y.Doc`. `@reflow/core` stays zero-dependency; Yjs is
+bridge `Collab` to a Yjs `Y.Doc`. `@realflow/core` stays zero-dependency; Yjs is
 yours to add.
 
 ```ts
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
-import { Collab } from '@reflow/core';
+import { Collab } from '@realflow/core';
 
 const doc = new Y.Doc();
 new WebsocketProvider('wss://your-server', 'room-1', doc);
@@ -83,7 +83,7 @@ ReFlow store).
 `Presence` is the same idea for ephemeral state:
 
 ```ts
-import { Presence } from '@reflow/core';
+import { Presence } from '@realflow/core';
 
 const presence = new Presence({
   peerId,
@@ -98,10 +98,10 @@ onPointerMove = (e) => presence.update({ cursor: flow.screenToFlow({ x: e.client
 useOnSelectionChange(({ nodes }) => presence.update({ selection: nodes.map((n) => n.id) }));
 ```
 
-Render remote peers with the `RemoteCursors` helper from `@reflow/react`:
+Render remote peers with the `RemoteCursors` helper from `@realflow/react`:
 
 ```tsx
-import { RemoteCursors } from '@reflow/react';
+import { RemoteCursors } from '@realflow/react';
 <ReFlow …>
   <RemoteCursors peers={remotePeers} />
 </ReFlow>

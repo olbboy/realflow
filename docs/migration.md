@@ -1,6 +1,6 @@
 # Migrating from React Flow (xyflow)
 
-`@reflow/compat` lets an existing React Flow app run on ReFlow's engine with
+`@realflow/compat` lets an existing React Flow app run on ReFlow's engine with
 minimal changes — often just the imports.
 
 ## The one-line migration
@@ -10,8 +10,8 @@ minimal changes — often just the imports.
 -          useReactFlow, useNodesState, useEdgesState, addEdge } from '@xyflow/react';
 - import '@xyflow/react/dist/style.css';
 + import { ReactFlow, Background, Controls, MiniMap, Handle, Position,
-+          useReactFlow, useNodesState, useEdgesState, addEdge } from '@reflow/compat';
-+ import '@reflow/compat/style.css';
++          useReactFlow, useNodesState, useEdgesState, addEdge } from '@realflow/compat';
++ import '@realflow/compat/style.css';
 ```
 
 Your `useNodesState`/`useEdgesState`, `onNodesChange`/`onEdgesChange`,
@@ -44,16 +44,16 @@ After migrating, these work without extra code:
 - **Culling on by default** — no `onlyRenderVisibleElements` flag needed.
 - **Copy/paste/duplicate** — ⌘C/⌘V/⌘D/⌘X.
 - **Alignment guides** — drag a node near another's edge.
-- **Built-in auto-layout** — `useReflow()` from `@reflow/react` exposes
+- **Built-in auto-layout** — `useReflow()` from `@realflow/react` exposes
   `.layout('layered')` etc. (no dagre/elk dependency).
 
 ## Known gaps (be honest)
 
-Not yet mapped in compat (use the native `@reflow/react` API, or contribute):
+Not yet mapped in compat (use the native `@realflow/react` API, or contribute):
 
 - `onlyRenderVisibleElements` prop — ReFlow always culls; the prop is a no-op.
 - `<NodeResizer>` / `<NodeToolbar>` from `@xyflow/react` — use the
-  `@reflow/react` equivalents (same idea, slightly different props).
+  `@realflow/react` equivalents (same idea, slightly different props).
 - `useStore` (Zustand selector into React Flow's internal store) — ReFlow's
   store is different; use `useReflow()` / `useFlowSelector()`.
 - Some fine-grained props (`connectionRadius`, `elevateNodesOnSelect`,
@@ -65,7 +65,7 @@ does not itself emit changes.
 
 ## If you're starting fresh
 
-Prefer `@reflow/react` directly — `useReflow()` removes the
+Prefer `@realflow/react` directly — `useReflow()` removes the
 `onNodesChange`/`applyNodeChanges` boilerplate entirely:
 
 ```tsx

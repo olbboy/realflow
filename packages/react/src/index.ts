@@ -36,4 +36,4 @@ export type {
 } from './types';
 
 // Re-export the core surface so one import serves most apps.
-export * from '@reflow/core';
+export * from '@realflow/core';

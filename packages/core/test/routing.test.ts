@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { routeOrthogonal, simplifyOrthogonal, type Rect } from '@reflow/core';
+import { routeOrthogonal, simplifyOrthogonal, type Rect } from '@realflow/core';
 
 const isOrthogonal = (pts: { x: number; y: number }[]): boolean => {
   for (let i = 1; i < pts.length; i++) {

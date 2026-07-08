@@ -1,10 +1,10 @@
 // One agent turn: ask the model for operations, then apply them to the store
 // as a single transactional batch (one undo reverts the whole turn).
-import { applyOperations } from '@reflow/core';
+import { applyOperations } from '@realflow/core';
 import { generateOperations } from './providers.mjs';
 
 /**
- * @param store  a @reflow/core FlowStore
+ * @param store  a @realflow/core FlowStore
  * @param goal   natural-language instruction for the agent
  * @param opts   { provider?, env?, fetchImpl?, apply? } — apply defaults to
  *               applyOperations with layered auto-layout and no viewport fit

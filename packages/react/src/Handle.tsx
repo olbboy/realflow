@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
-import type { HandleKind, Side } from '@reflow/core';
-import { screenToFlow } from '@reflow/core';
+import type { HandleKind, Side } from '@realflow/core';
+import { screenToFlow } from '@realflow/core';
 import { useFlowStore, useNodeId } from './context';
 import { useConfig, useContainer } from './config';
 import { useMeasurer } from './measure';

@@ -63,7 +63,7 @@ export const runLayoutJob = (job: LayoutJob): LayoutResult => {
 /**
  * A minimal worker-message handler. Drop this into your worker entry:
  *
- *   import { layoutWorkerHandler } from '@reflow/core';
+ *   import { layoutWorkerHandler } from '@realflow/core';
  *   self.onmessage = (e) => self.postMessage(layoutWorkerHandler(e.data));
  */
 export const layoutWorkerHandler = (job: LayoutJob): LayoutResult => runLayoutJob(job);

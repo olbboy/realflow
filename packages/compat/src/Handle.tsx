@@ -1,4 +1,4 @@
-import { Handle as ReflowHandle } from '@reflow/react';
+import { Handle as ReflowHandle } from '@realflow/react';
 import type { CSSProperties, ReactNode } from 'react';
 import type { Position } from './enums';
 

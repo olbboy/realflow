@@ -3,17 +3,17 @@
 ## Install
 
 ```bash
-npm install @reflow/react
+npm install @realflow/react
 ```
 
-`@reflow/react` re-exports everything from `@reflow/core`, so one import
+`@realflow/react` re-exports everything from `@realflow/core`, so one import
 covers most apps.
 
 ## Your first flow
 
 ```tsx
-import { ReFlow, Background, Controls, MiniMap } from '@reflow/react';
-import '@reflow/react/styles.css';
+import { ReFlow, Background, Controls, MiniMap } from '@realflow/react';
+import '@realflow/react/styles.css';
 
 const nodes = [
   { id: '1', position: { x: 0, y: 0 }, data: { label: 'Extract' } },

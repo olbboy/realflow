@@ -18,7 +18,7 @@ jobs:
       - name: Lint
         run: npm run lint
       - name: Build packages
-        run: npm run build && npm run build -w @reflow/compat
+        run: npm run build && npm run build -w @realflow/compat
       - name: Typecheck
         run: npm run typecheck
       - name: Unit + integration tests
@@ -27,14 +27,14 @@ jobs:
         run: npm run build:demo
       - name: Verify npm pack is clean
         run: |
-          npm pack --dry-run -w @reflow/core
-          npm pack --dry-run -w @reflow/react
-          npm pack --dry-run -w @reflow/compat
+          npm pack --dry-run -w @realflow/core
+          npm pack --dry-run -w @realflow/react
+          npm pack --dry-run -w @realflow/compat
       - name: Verify built packages load under native Node ESM
         run: |
-          node -e "import('@reflow/core').then(m => { if (typeof m.FlowStore !== 'function') { console.error('core did not load'); process.exit(1) } })"
-          node -e "import('@reflow/react').then(m => { if (!m.ReFlow) { console.error('react did not load'); process.exit(1) } })"
-          node -e "import('@reflow/compat').then(m => { if (!m.ReactFlow) { console.error('compat did not load'); process.exit(1) } })"
+          node -e "import('@realflow/core').then(m => { if (typeof m.FlowStore !== 'function') { console.error('core did not load'); process.exit(1) } })"
+          node -e "import('@realflow/react').then(m => { if (!m.ReFlow) { console.error('react did not load'); process.exit(1) } })"
+          node -e "import('@realflow/compat').then(m => { if (!m.ReactFlow) { console.error('compat did not load'); process.exit(1) } })"
       - name: AI-agent example runs headless (no key → graceful skip)
         run: node examples/ai-agent/generate.mjs "smoke"
 
@@ -48,7 +48,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Build packages
-        run: npm run build && npm run build -w @reflow/compat
+        run: npm run build && npm run build -w @realflow/compat
       - name: Build demo
         run: npm run build:demo
       - name: Install Playwright browsers
@@ -67,7 +67,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Build packages
-        run: npm run build && npm run build -w @reflow/compat
+        run: npm run build && npm run build -w @realflow/compat
       - name: Build demo
         run: npm run build:demo
       - name: Install Playwright Chromium

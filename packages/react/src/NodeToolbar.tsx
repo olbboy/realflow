@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import type { Side } from '@reflow/core';
+import type { Side } from '@realflow/core';
 import { useFlowStore, useNodeId } from './context';
 import { useFlowSelector, useViewport } from './hooks';
 

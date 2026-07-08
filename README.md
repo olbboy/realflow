@@ -35,13 +35,13 @@ add-on:
 | AI-agent integration | ✅ JSON operations + validated executor, LLM tool schema, graph→Mermaid | ❌ DIY |
 | Orthogonal routing w/ obstacle avoidance | ✅ Edges route **around** nodes (A*), re-route live | ❌ Edges cross nodes |
 | Real-time collaboration | ✅ Transport-agnostic CRDT-style sync + presence, Yjs-ready | ❌ DIY |
-| Migration path | ✅ `@reflow/compat` — drop-in React Flow API adapter | — |
+| Migration path | ✅ `@realflow/compat` — drop-in React Flow API adapter | — |
 | Copy / paste / duplicate | ✅ Built in (⌘C/V/D/X), id-remapped, one undo | ⚠️ DIY |
 | NodeResizer / NodeToolbar / edge reconnect | ✅ Built in | ✅ (some Pro) |
 | Accessibility | ✅ Focusable nodes, aria, spatial keyboard nav | ⚠️ Partial |
 | Graph algorithms | ✅ Topo sort, cycle detect, components, shortest path, ancestors | ⚠️ `getIncomers` / `getOutgoers` |
 | State management | ✅ `useReflow()` — no reducers, no change handlers | ⚠️ `onNodesChange` + `applyNodeChanges` boilerplate |
-| Headless core | ✅ `@reflow/core` — zero dependencies, runs anywhere | ⚠️ `@xyflow/system` (depends on d3-zoom/d3-drag) |
+| Headless core | ✅ `@realflow/core` — zero dependencies, runs anywhere | ⚠️ `@xyflow/system` (depends on d3-zoom/d3-drag) |
 | Default look | ✅ Polished theme, dark mode, animations out of the box | ⚠️ Gray boxes |
 | License | ✅ MIT, everything free | MIT + paid Pro examples |
 
@@ -64,12 +64,12 @@ memory. Numbers are honest and reproducible, not marketing.
 ## Quick start
 
 ```bash
-npm install @reflow/react
+npm install @realflow/react
 ```
 
 ```tsx
-import { ReFlow, Background, Controls, MiniMap } from '@reflow/react';
-import '@reflow/react/styles.css';
+import { ReFlow, Background, Controls, MiniMap } from '@realflow/react';
+import '@realflow/react/styles.css';
 
 const nodes = [
   { id: 'a', position: { x: 0, y: 0 }, data: { label: 'Hello' } },
@@ -97,7 +97,7 @@ No `onNodesChange`, no `applyNodeChanges`, no state wiring.
 ### Drive it imperatively
 
 ```tsx
-import { useReflow } from '@reflow/react';
+import { useReflow } from '@realflow/react';
 
 function Toolbar() {
   const flow = useReflow();
@@ -201,7 +201,7 @@ An LLM can drive the canvas through a validated JSON operation format —
 with a ready-made tool schema and prompt fragment:
 
 ```ts
-import { applyOperations, operationSchema, OPERATIONS_PROMPT, describeGraph, toMermaid } from '@reflow/core';
+import { applyOperations, operationSchema, OPERATIONS_PROMPT, describeGraph, toMermaid } from '@realflow/core';
 
 // agent emits ops via tool-calling…
 applyOperations(flow.store, [
@@ -232,10 +232,10 @@ Deleting a group re-parents children instead of orphaning them.
 
 ```ts
 import { topologicalSort, hasCycle, connectedComponents, shortestPath,
-         getAncestors, getDescendants, getIncomers, getOutgoers } from '@reflow/core';
+         getAncestors, getDescendants, getIncomers, getOutgoers } from '@realflow/core';
 ```
 
-`@reflow/core` is headless and dependency-free — use it in Node.js for
+`@realflow/core` is headless and dependency-free — use it in Node.js for
 server-side validation, tests, or CLI tooling with the exact engine the UI
 runs.
 
@@ -252,12 +252,12 @@ MUI ([integration guide](./docs/integrations.md)).
 
 ### 🔄 Migrating from React Flow?
 
-`@reflow/compat` is a drop-in adapter — change your imports and an existing
+`@realflow/compat` is a drop-in adapter — change your imports and an existing
 React Flow app runs on ReFlow's engine (undo/redo and culling included, free):
 
 ```diff
 - import { ReactFlow, Handle, Position, useReactFlow } from '@xyflow/react';
-+ import { ReactFlow, Handle, Position, useReactFlow } from '@reflow/compat';
++ import { ReactFlow, Handle, Position, useReactFlow } from '@realflow/compat';
 ```
 
 `useNodesState`, `onNodesChange`/`applyNodeChanges`, `onConnect`, custom
@@ -268,9 +268,9 @@ React Flow app runs on ReFlow's engine (undo/redo and culling included, free):
 
 | Package | What it is |
 | --- | --- |
-| [`@reflow/core`](./packages/core) | Headless engine: store, spatial index, paths, layouts, history, algorithms, AI ops. Zero dependencies. |
-| [`@reflow/react`](./packages/react) | React renderer: `<ReFlow>`, components, hooks, theme. Depends only on core + React. |
-| [`@reflow/compat`](./packages/compat) | React Flow (xyflow) API compatibility adapter for migrations. |
+| [`@realflow/core`](./packages/core) | Headless engine: store, spatial index, paths, layouts, history, algorithms, AI ops. Zero dependencies. |
+| [`@realflow/react`](./packages/react) | React renderer: `<ReFlow>`, components, hooks, theme. Depends only on core + React. |
+| [`@realflow/compat`](./packages/compat) | React Flow (xyflow) API compatibility adapter for migrations. |
 
 ## Honesty
 
@@ -293,7 +293,7 @@ npm run dev   # showcase + 1k/5k/10k stress scenes at http://localhost:5173
 ## Development
 
 ```bash
-npm run build      # build core + react (compat: npm run build -w @reflow/compat)
+npm run build      # build core + react (compat: npm run build -w @realflow/compat)
 npm run lint       # ESLint (typescript-eslint + react-hooks)
 npm test           # 144 unit/integration tests (vitest)
 npm run typecheck  # strict TS across packages

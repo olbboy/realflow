@@ -10,7 +10,7 @@ import {
   flowToScreen,
   type Node as ReflowNode,
   type Edge as ReflowEdge,
-} from '@reflow/react';
+} from '@realflow/react';
 import type {
   NodeChange,
   EdgeChange,

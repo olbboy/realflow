@@ -12,8 +12,8 @@ import type {
   PointerEvent as ReactPointerEvent,
   ReactNode,
 } from 'react';
-import { FlowStore, rectFromPoints, screenToFlow } from '@reflow/core';
-import type { Edge, Node, Viewport, XY } from '@reflow/core';
+import { FlowStore, rectFromPoints, screenToFlow } from '@realflow/core';
+import type { Edge, Node, Viewport, XY } from '@realflow/core';
 import { FlowContext } from './context';
 import { ConfigContext, ContainerContext } from './config';
 import { MeasureContext, createMeasurer } from './measure';

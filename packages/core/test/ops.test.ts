@@ -7,7 +7,7 @@ import {
   operationSchema,
   OPERATIONS_PROMPT,
   type FlowOperation,
-} from '@reflow/core';
+} from '@realflow/core';
 
 const pipelineOps: FlowOperation[] = [
   { op: 'add_node', id: 'ingest', label: 'Ingest', type: 'input' },

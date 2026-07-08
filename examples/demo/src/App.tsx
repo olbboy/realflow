@@ -8,7 +8,7 @@ import {
   uid,
   type LayoutType,
   type ReflowApi,
-} from '@reflow/react';
+} from '@realflow/react';
 import { demoNodeTypes, makeStress, showcaseEdges, showcaseNodes } from './scenes';
 import { AIScene } from './AIScene';
 import { FrameworkScene } from './FrameworkScene';

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bezierPath, edgePath, smoothStepPath, stepWaypoints, straightPath } from '@reflow/core';
+import { bezierPath, edgePath, smoothStepPath, stepWaypoints, straightPath } from '@realflow/core';
 
 const spec = {
   source: { x: 0, y: 0 },

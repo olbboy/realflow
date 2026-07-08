@@ -7,7 +7,7 @@ import {
   ReFlow,
   type Edge,
   type Node,
-} from '@reflow/react';
+} from '@realflow/react';
 import { ShadcnServiceNode } from './nodes/ShadcnServiceNode';
 import { BaseUiServiceNode } from './nodes/BaseUiServiceNode';
 import './shadcn.css';

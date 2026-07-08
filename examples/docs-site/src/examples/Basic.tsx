@@ -1,4 +1,4 @@
-import { ReFlow, Background, Controls, MiniMap } from '@reflow/react';
+import { ReFlow, Background, Controls, MiniMap } from '@realflow/react';
 
 const nodes = [
   { id: '1', position: { x: 40, y: 40 }, data: { label: 'Extract' }, type: 'input' },

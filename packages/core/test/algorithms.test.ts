@@ -10,7 +10,7 @@ import {
   shortestPath,
   topologicalSort,
   type Node,
-} from '@reflow/core';
+} from '@realflow/core';
 
 const n = (id: string): Node => ({ id, position: { x: 0, y: 0 }, data: {} });
 

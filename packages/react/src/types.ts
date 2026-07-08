@@ -8,7 +8,7 @@ import type {
   Side,
   Viewport,
   XY,
-} from '@reflow/core';
+} from '@realflow/core';
 import type { ReflowApi } from './hooks';
 
 /** Props passed to custom node components. */

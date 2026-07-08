@@ -9,7 +9,7 @@
     "benchmarks"
   ],
   "scripts": {
-    "build": "npm run build -w @reflow/core -w @reflow/react",
+    "build": "npm run build -w @realflow/core -w @realflow/react",
     "build:demo": "npm run build -w reflow-demo",
     "dev": "npm run dev -w reflow-demo",
     "test": "vitest run",

@@ -7,9 +7,9 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@reflow/core': resolve(__dirname, 'packages/core/src/index.ts'),
-      '@reflow/react': resolve(__dirname, 'packages/react/src/index.ts'),
-      '@reflow/compat': resolve(__dirname, 'packages/compat/src/index.ts'),
+      '@realflow/core': resolve(__dirname, 'packages/core/src/index.ts'),
+      '@realflow/react': resolve(__dirname, 'packages/react/src/index.ts'),
+      '@realflow/compat': resolve(__dirname, 'packages/compat/src/index.ts'),
     },
   },
   test: {

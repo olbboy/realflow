@@ -1,8 +1,8 @@
 # ReFlow
 
 > The fastest, most complete open-source library for building node-based UIs
-> with React. Headless core (`@reflow/core`, zero deps), React renderer
-> (`@reflow/react`), and a React Flow compatibility adapter (`@reflow/compat`).
+> with React. Headless core (`@realflow/core`, zero deps), React renderer
+> (`@realflow/react`), and a React Flow compatibility adapter (`@realflow/compat`).
 > Culling on by default, built-in undo/redo + auto-layout, and a first-class
 > AI-agent operation layer.
 
@@ -11,14 +11,14 @@ This file helps LLMs generate correct ReFlow code on the first try.
 ## Install
 
 ```
-npm install @reflow/react   # includes @reflow/core
+npm install @realflow/react   # includes @realflow/core
 ```
 
 ## Minimal app
 
 ```tsx
-import { ReFlow, Background, Controls, MiniMap } from '@reflow/react';
-import '@reflow/react/styles.css';
+import { ReFlow, Background, Controls, MiniMap } from '@realflow/react';
+import '@realflow/react/styles.css';
 
 const nodes = [
   { id: 'a', position: { x: 0, y: 0 }, data: { label: 'Hello' } },
@@ -59,7 +59,7 @@ flow.undo(); flow.redo();
 ## Custom nodes
 
 ```tsx
-import { Handle, type NodeProps } from '@reflow/react';
+import { Handle, type NodeProps } from '@realflow/react';
 function MyNode({ data }: NodeProps<{ label: string }>) {
   return (
     <div>
@@ -74,13 +74,13 @@ function MyNode({ data }: NodeProps<{ label: string }>) {
 Handle props: `kind: 'source'|'target'`, `side: 'left'|'right'|'top'|'bottom'`,
 optional `id`, `dataType` (typed ports), `maxConnections`.
 
-## AI agent operations (@reflow/core)
+## AI agent operations (@realflow/core)
 
 An LLM should emit an array of operations; apply them with `applyOperations`:
 
 ```ts
 import { applyOperations, operationSchema, OPERATIONS_PROMPT,
-         describeGraph, toMermaid } from '@reflow/core';
+         describeGraph, toMermaid } from '@realflow/core';
 
 applyOperations(store, [
   { op: 'add_node', id: 'fetch', label: 'Fetch data' },   // omit position => auto-layout
@@ -99,7 +99,7 @@ applyOperations(store, [
 
 ## Migrating from React Flow
 
-Change imports to `@reflow/compat` (and CSS to `@reflow/compat/style.css`).
+Change imports to `@realflow/compat` (and CSS to `@realflow/compat/style.css`).
 `ReactFlow`, `Handle` (`type`/`position`), `Position`, `useReactFlow`,
 `useNodesState`, `applyNodeChanges`, `addEdge` all work. See docs/migration.md.
 
