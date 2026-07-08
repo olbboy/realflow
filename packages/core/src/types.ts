@@ -159,6 +159,12 @@ export interface FlowSnapshot {
   viewport: Viewport;
 }
 
+/** Built-in shape kinds for the `shape` node type. */
+export type ShapeKind = 'rectangle' | 'ellipse' | 'diamond';
+
+/** Active canvas tool: normal selection, freehand drawing, or a shape stamp. */
+export type Tool = 'select' | 'freehand' | ShapeKind;
+
 export interface StoreOptions {
   nodes?: Node[];
   edges?: Edge[];

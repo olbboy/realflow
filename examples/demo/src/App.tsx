@@ -9,6 +9,7 @@ import {
   uid,
   type LayoutType,
   type RealFlowApi,
+  type Tool,
 } from '@realflow/react';
 import { demoNodeTypes, makeStress, showcaseEdges, showcaseNodes } from './scenes';
 import { AIScene } from './AIScene';
@@ -69,11 +70,16 @@ export default function App() {
     typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches
   );
   const apiRef = useRef<RealFlowApi | null>(null);
+  const [tool, setTool] = useState<Tool>('select');
   const { nodes, edges } = sceneData(scene);
   const isShowcase = scene === 'showcase';
 
   const runLayout = (type: LayoutType): void => {
     apiRef.current?.layout(type, { duration: 350 });
+  };
+
+  const pickTool = (t: Tool): void => {
+    apiRef.current?.setTool(tool === t ? 'select' : t);
   };
 
   const exportSvg = (): void => {
@@ -168,6 +174,8 @@ export default function App() {
           snapGrid={0}
           onInit={(api) => {
             apiRef.current = api;
+            setTool(api.store.tool);
+            api.store.subscribe('tool', () => setTool(api.store.tool));
           }}
           fitViewOptions={isShowcase ? { maxZoom: 1.1 } : { minZoom: 0.55, maxZoom: 1 }}
         >
@@ -180,6 +188,11 @@ export default function App() {
                 <button onClick={addNode}>+ Node</button>
                 <button onClick={groupSelection} title="Group the selected nodes (shift-drag to select)">⧉ Group</button>
                 <button onClick={collapseSelection} title="Collapse/expand the selected node's subtree">⊟ Collapse</button>
+                <span className="demo-toolbar-label">draw</span>
+                <button className={tool === 'rectangle' ? 'active' : ''} onClick={() => pickTool('rectangle')} title="Draw a rectangle">▭</button>
+                <button className={tool === 'ellipse' ? 'active' : ''} onClick={() => pickTool('ellipse')} title="Draw an ellipse">⬭</button>
+                <button className={tool === 'diamond' ? 'active' : ''} onClick={() => pickTool('diamond')} title="Draw a diamond">◇</button>
+                <button className={tool === 'freehand' ? 'active' : ''} onClick={() => pickTool('freehand')} title="Freehand draw">✎</button>
               </>
             ) : null}
             <span className="demo-toolbar-label">layout</span>

@@ -9,7 +9,9 @@ import type {
   HandleKind,
   Node,
   Rect,
+  ShapeKind,
   StoreOptions,
+  Tool,
   Viewport,
   XY,
 } from './types';
@@ -1070,6 +1072,73 @@ export class FlowStore {
       this.updateNode(id, { collapsed: false });
       this._applyCollapseVisibility();
     });
+  }
+
+  /** The active canvas tool. `select` is normal pan/select; others draw. */
+  tool: Tool = 'select';
+
+  /** Switch the active canvas tool (freehand / shape stamps / select). */
+  setTool(tool: Tool): void {
+    if (this.tool === tool) return;
+    this.tool = tool;
+    this.emit('tool');
+  }
+
+  /** Create a shape node filling `rect`. One undo entry; returns the new id. */
+  createShape(shape: ShapeKind, rect: Rect, data: Record<string, unknown> = {}): string {
+    const id = uid('shape');
+    this.transact('add shape', () => {
+      this.addNode({
+        id,
+        type: 'shape',
+        position: { x: rect.x, y: rect.y },
+        width: Math.max(8, rect.width),
+        height: Math.max(8, rect.height),
+        data: { shape, ...data },
+      });
+      this.setSelection([id]);
+    });
+    return id;
+  }
+
+  /**
+   * Create a freehand node from a captured stroke (absolute flow points). The
+   * node is sized to the stroke's bounding box (with padding) and the points
+   * are stored relative to it. One undo entry; returns the new id.
+   */
+  createFreehand(points: XY[], data: Record<string, unknown> = {}): string {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const p of points) {
+      minX = Math.min(minX, p.x);
+      minY = Math.min(minY, p.y);
+      maxX = Math.max(maxX, p.x);
+      maxY = Math.max(maxY, p.y);
+    }
+    if (!Number.isFinite(minX)) {
+      minX = 0;
+      minY = 0;
+      maxX = 0;
+      maxY = 0;
+    }
+    const pad = 4;
+    const ox = minX - pad;
+    const oy = minY - pad;
+    const id = uid('draw');
+    this.transact('add drawing', () => {
+      this.addNode({
+        id,
+        type: 'freehand',
+        position: { x: ox, y: oy },
+        width: maxX - minX + pad * 2,
+        height: maxY - minY + pad * 2,
+        data: { points: points.map((p) => ({ x: p.x - ox, y: p.y - oy })), ...data },
+      });
+      this.setSelection([id]);
+    });
+    return id;
   }
 
   /** Duration (ms) of the most recently requested node-position tween. */

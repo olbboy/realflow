@@ -5,6 +5,7 @@ import { useConfig } from './config';
 import { useFlowSelector } from './hooks';
 import { useMeasurer } from './measure';
 import { DefaultNode, GroupNode, InputNode, OutputNode } from './DefaultNode';
+import { ShapeNode, FreehandNode } from './DrawNodes';
 
 const NO_DRAG_SELECTOR =
   '.rf-handle, .rf-nodrag, input, textarea, select, button, a, [contenteditable="true"]';
@@ -237,4 +238,6 @@ export const builtinNodeTypes = {
   input: InputNode,
   output: OutputNode,
   group: GroupNode,
+  shape: ShapeNode,
+  freehand: FreehandNode,
 };

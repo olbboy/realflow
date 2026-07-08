@@ -12,8 +12,8 @@ import type {
   PointerEvent as ReactPointerEvent,
   ReactNode,
 } from 'react';
-import { FlowStore, rectFromPoints, screenToFlow } from '@realflow/core';
-import type { Edge, Node, Viewport, XY } from '@realflow/core';
+import { FlowStore, rectFromPoints, screenToFlow, splinePath } from '@realflow/core';
+import type { Edge, Node, Rect, ShapeKind, Tool, Viewport, XY } from '@realflow/core';
 import { FlowContext } from './context';
 import { ConfigContext, ContainerContext } from './config';
 import { MeasureContext, createMeasurer } from './measure';
@@ -24,14 +24,54 @@ import type { FlowConfig, RealFlowProps } from './types';
 
 interface PaneSession {
   pointerId: number;
-  mode: 'pan' | 'box';
+  mode: 'pan' | 'box' | 'draw';
   startClient: XY;
   startViewport: Viewport;
   startFlow: XY;
   moved: boolean;
   raf: number | null;
   lastClient: XY;
+  /** Draw mode: the active tool and (for freehand) the captured stroke. */
+  tool?: Tool;
+  points?: XY[];
 }
+
+/** Live preview of an in-progress shape/freehand draw, in flow coordinates. */
+interface DrawPreview {
+  tool: Tool;
+  rect?: Rect;
+  points?: XY[];
+}
+
+/** SVG overlay for the draw-in-progress preview (rendered inside the viewport). */
+const DrawPreviewOverlay = memo(function DrawPreviewOverlay({ preview }: { preview: DrawPreview }) {
+  if (preview.points) {
+    const d = preview.points.length > 1 ? splinePath(preview.points).d : '';
+    return (
+      <svg className="rf-draw-preview">
+        <path className="rf-draw-stroke" d={d} />
+      </svg>
+    );
+  }
+  const r = preview.rect;
+  if (!r) return null;
+  const cx = r.x + r.width / 2;
+  const cy = r.y + r.height / 2;
+  return (
+    <svg className="rf-draw-preview">
+      {preview.tool === 'ellipse' ? (
+        <ellipse className="rf-draw-shape" cx={cx} cy={cy} rx={r.width / 2} ry={r.height / 2} />
+      ) : preview.tool === 'diamond' ? (
+        <polygon
+          className="rf-draw-shape"
+          points={`${cx},${r.y} ${r.x + r.width},${cy} ${cx},${r.y + r.height} ${r.x},${cy}`}
+        />
+      ) : (
+        <rect className="rf-draw-shape" x={r.x} y={r.y} width={r.width} height={r.height} rx={6} />
+      )}
+    </svg>
+  );
+});
 
 const INPUT_SELECTOR = 'input, textarea, select, [contenteditable="true"]';
 
@@ -112,6 +152,7 @@ export const RealFlow = memo(function RealFlow(props: RealFlowProps) {
   const [boxRect, setBoxRect] = useState<{ x: number; y: number; w: number; h: number } | null>(
     null
   );
+  const [drawPreview, setDrawPreview] = useState<DrawPreview | null>(null);
   const seeded = useRef(false);
   const clipboard = useRef<{ nodes: Node[]; edges: Edge[] } | null>(null);
   const pasteCount = useRef(0);
@@ -286,6 +327,15 @@ export const RealFlow = memo(function RealFlow(props: RealFlowProps) {
     };
   }, [store]);
 
+  // ── active tool → container attribute (drives the crosshair cursor) ──────
+  useEffect(() => {
+    const apply = (): void => {
+      containerRef.current?.setAttribute('data-rf-tool', store.tool);
+    };
+    apply();
+    return store.subscribe('tool', apply);
+  }, [store]);
+
   // One shared ResizeObserver for all nodes in this flow.
   const measurer = useMemo(() => createMeasurer(store), [store]);
   useEffect(() => () => measurer.disconnect(), [measurer]);
@@ -378,6 +428,33 @@ export const RealFlow = memo(function RealFlow(props: RealFlowProps) {
       if (touches.current.size > 2) return;
     }
     if (e.button !== 0 && e.button !== 1) return;
+    // Draw tools take over the pane: a left drag creates a shape/freehand node.
+    if (store.tool !== 'select' && e.button === 0 && !readOnly) {
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        /* synthetic events */
+      }
+      const startFlow = clientToFlow(e.clientX, e.clientY);
+      pane.current = {
+        pointerId: e.pointerId,
+        mode: 'draw',
+        tool: store.tool,
+        startClient: { x: e.clientX, y: e.clientY },
+        startViewport: { ...store.viewport },
+        startFlow,
+        moved: false,
+        raf: null,
+        lastClient: { x: e.clientX, y: e.clientY },
+        points: store.tool === 'freehand' ? [startFlow] : undefined,
+      };
+      setDrawPreview(
+        store.tool === 'freehand'
+          ? { tool: store.tool, points: [startFlow] }
+          : { tool: store.tool, rect: { x: startFlow.x, y: startFlow.y, width: 0, height: 0 } }
+      );
+      return;
+    }
     const wantBox =
       !readOnly && e.button === 0 && (selectionOnDrag ? !e.altKey : e.shiftKey);
     const wantPan = !wantBox && panOnDrag !== false;
@@ -411,6 +488,18 @@ export const RealFlow = memo(function RealFlow(props: RealFlowProps) {
     const s = pane.current;
     if (!s || e.pointerId !== s.pointerId) return;
     s.lastClient = { x: e.clientX, y: e.clientY };
+    // Draw mode: grow the shape preview or extend the freehand stroke.
+    if (s.mode === 'draw') {
+      s.moved = true;
+      const cur = clientToFlow(e.clientX, e.clientY);
+      if (s.tool === 'freehand') {
+        s.points!.push(cur);
+        setDrawPreview({ tool: s.tool, points: [...s.points!] });
+      } else {
+        setDrawPreview({ tool: s.tool!, rect: rectFromPoints(s.startFlow, cur) });
+      }
+      return;
+    }
     const dx = e.clientX - s.startClient.x;
     const dy = e.clientY - s.startClient.y;
     if (!s.moved && Math.hypot(dx, dy) < 3) return;
@@ -462,6 +551,24 @@ export const RealFlow = memo(function RealFlow(props: RealFlowProps) {
       e.currentTarget.releasePointerCapture(e.pointerId);
     } catch {
       /* already released */
+    }
+    // Draw mode: commit the shape/freehand node, then return to select.
+    if (s.mode === 'draw') {
+      setDrawPreview(null);
+      const end = clientToFlow(e.clientX, e.clientY);
+      if (s.tool === 'freehand') {
+        if ((s.points?.length ?? 0) > 2) store.createFreehand(s.points!);
+      } else {
+        const rect = rectFromPoints(s.startFlow, end);
+        store.createShape(
+          s.tool as ShapeKind,
+          rect.width < 4 && rect.height < 4
+            ? { x: s.startFlow.x, y: s.startFlow.y, width: 120, height: 80 }
+            : rect
+        );
+      }
+      store.setTool('select');
+      return;
     }
     if (!s.moved && e.button === 0) {
       // Pane click: clear selection (keep it with shift) and notify.
@@ -586,6 +693,7 @@ export const RealFlow = memo(function RealFlow(props: RealFlowProps) {
               <div ref={viewportRef} className="rf-viewport">
                 <EdgesLayer />
                 <NodesLayer />
+                {drawPreview ? <DrawPreviewOverlay preview={drawPreview} /> : null}
               </div>
             </MeasureContext.Provider>
             {boxRect ? (
