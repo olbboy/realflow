@@ -61,7 +61,7 @@ Legend: ✅ HAVE (code + test/measurement) · 🟡 PARTIAL · ❌ MISSING · ⚠
 | Orthogonal routing with obstacle avoidance | ✅ | `routing.ts` (Hanan-grid A* + turn penalty); `routing.test.ts` **7 tests pass** |
 | CRDT/Yjs collaborative sync + presence | ✅ | `collab.ts`; `collab.test.ts` (6) + `collab-yjs.test.ts` (2, **real Yjs interop**) pass |
 | Worker + incremental auto-layout | ✅ | `layout-worker.ts`; `layout-worker.test.ts` **7 pass** (real `worker_threads`) |
-| Cross-browser Playwright matrix (Chromium/Firefox/WebKit) + touch | ✅ | `playwright.config.ts` + `e2e/core-flow.spec.ts`; **18 pass** across 4 projects incl. touch tap-select; wired into CI `e2e` job |
+| Cross-browser Playwright matrix (Chromium/Firefox/WebKit) + touch | ✅ | `playwright.config.ts` + `e2e/core-flow.spec.ts` + `e2e/framework-nodes.spec.ts`; green on CI across 4 projects incl. touch tap-select and real shadcn/Base UI interactions. Two showcase interactions (keyboard-nudge, handle-connect) run on Chromium+Firefox only — headless Linux WebKit doesn't deliver synthetic keyboard focus / complete handle drags (pass on macOS WebKit). |
 | Visual regression tests | ✅ | `e2e/visual.spec.ts` — 4 masked, animation-frozen snapshots (showcase, framework light/dark, routing); darwin baselines committed; CI `visual` job on macOS; `npm run test:e2e:visual` |
 | Benchmark reproducible by one command on any machine | ⚠️→✅ | **WAS BROKEN** — `run.mjs` hard-coded a CI-only browser path (`/opt/pw-browsers/chromium`); `npm run bench` failed off-CI. Fixed (env/pinned/auto fallback); re-ran locally, ReFlow wins the edit scenario (120 vs 21 fps @10k, ~14× less heap) |
 
