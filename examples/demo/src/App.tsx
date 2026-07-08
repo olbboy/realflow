@@ -88,6 +88,10 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
+  const groupSelection = (): void => {
+    apiRef.current?.groupSelection({ label: 'Group' });
+  };
+
   const addNode = (): void => {
     const api = apiRef.current;
     if (!api) return;
@@ -164,7 +168,10 @@ export default function App() {
           <MiniMap />
           <Panel position="top-right" className="demo-toolbar">
             {isShowcase ? (
-              <button onClick={addNode}>+ Node</button>
+              <>
+                <button onClick={addNode}>+ Node</button>
+                <button onClick={groupSelection} title="Group the selected nodes (shift-drag to select)">⧉ Group</button>
+              </>
             ) : null}
             <span className="demo-toolbar-label">layout</span>
             <button onClick={() => runLayout('layered')}>layered</button>

@@ -976,6 +976,69 @@ export class FlowStore {
     this.commit();
   }
 
+  /**
+   * Wrap the selected nodes in a new container node sized to their bounding
+   * box. Each member is re-parented to the group with its position rebased to
+   * the group's local space; a member whose current parent is also selected is
+   * left alone so existing nesting is preserved. One undo entry. Returns the
+   * new group id, or `undefined` if nothing is selected.
+   */
+  groupSelection(options: { padding?: number; label?: string; id?: string } = {}): string | undefined {
+    const ids = [...this.selectedNodes].filter((id) => this.nodes.has(id));
+    if (ids.length === 0) return undefined;
+    const pad = options.padding ?? 32;
+
+    // Absolute bounding box over the whole selection.
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const id of ids) {
+      const n = this.nodes.get(id)!;
+      const abs = this.absolutePosition(id);
+      minX = Math.min(minX, abs.x);
+      minY = Math.min(minY, abs.y);
+      maxX = Math.max(maxX, abs.x + (n.width ?? DEFAULT_NODE_WIDTH));
+      maxY = Math.max(maxY, abs.y + (n.height ?? DEFAULT_NODE_HEIGHT));
+    }
+
+    const groupId = options.id ?? uid('group');
+    const gx = minX - pad;
+    const gy = minY - pad;
+    const selectedSet = new Set(ids);
+
+    this.transact('group selection', () => {
+      this.addNode({
+        id: groupId,
+        type: 'group',
+        position: { x: gx, y: gy },
+        width: maxX - minX + pad * 2,
+        height: maxY - minY + pad * 2,
+        data: { label: options.label ?? 'Group' },
+      });
+      for (const id of ids) {
+        const n = this.nodes.get(id)!;
+        // Skip members that ride inside another selected member (keep nesting).
+        if (n.parentId && selectedSet.has(n.parentId)) continue;
+        const abs = this.absolutePosition(id);
+        this.updateNode(id, { parentId: groupId, position: { x: abs.x - gx, y: abs.y - gy } });
+      }
+      this.setSelection([groupId]);
+    });
+    return groupId;
+  }
+
+  /**
+   * Dissolve a group: its direct children are re-parented back to the root at
+   * their absolute positions and the container node is removed. Delegates to
+   * {@link removeNodes}, which already reparents surviving children on delete,
+   * so it is a single undoable step. No-op if `groupId` is not a node.
+   */
+  ungroup(groupId: string): void {
+    if (!this.nodes.has(groupId)) return;
+    this.removeNodes([groupId]);
+  }
+
   // ── clipboard: copy / paste / duplicate ───────────────────────────────
 
   /**
