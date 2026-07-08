@@ -12,6 +12,8 @@ export interface EdgePathSpec {
   borderRadius?: number;
   /** Minimum stub length leaving a handle for step paths (default 20). */
   offset?: number;
+  /** User-placed control points (editable edges); routes a smooth spline. */
+  waypoints?: XY[];
 }
 
 export interface EdgePath {
@@ -222,6 +224,37 @@ export const pathFns: Record<string, PathFn> = {
   step: stepPath,
 };
 
-/** Build a path for the given edge type, falling back to bezier. */
+/**
+ * Smooth cubic spline (Catmull-Rom → bezier) through the given points — the
+ * curve passes exactly through every point. Used for editable edges whose
+ * control points the user has dragged.
+ */
+export const splinePath = (points: XY[]): EdgePath => {
+  const pts = dedupe(points);
+  if (pts.length < 2) {
+    const p = pts[0] ?? { x: 0, y: 0 };
+    return { d: `M ${f(p.x)},${f(p.y)}`, label: { x: p.x, y: p.y } };
+  }
+  if (pts.length === 2) {
+    return straightPath({ source: pts[0], target: pts[1], sourceSide: 'right', targetSide: 'left' });
+  }
+  let d = `M ${f(pts[0].x)},${f(pts[0].y)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] ?? p2;
+    const c1 = { x: p1.x + (p2.x - p0.x) / 6, y: p1.y + (p2.y - p0.y) / 6 };
+    const c2 = { x: p2.x - (p3.x - p1.x) / 6, y: p2.y - (p3.y - p1.y) / 6 };
+    d += ` C ${f(c1.x)},${f(c1.y)} ${f(c2.x)},${f(c2.y)} ${f(p2.x)},${f(p2.y)}`;
+  }
+  const mid = pts[Math.floor(pts.length / 2)];
+  return { d, label: { x: mid.x, y: mid.y } };
+};
+
+/** Build a path for the given edge type, falling back to bezier. Editable
+ *  control points (waypoints) route a smooth spline regardless of type. */
 export const edgePath = (type: string | undefined, s: EdgePathSpec): EdgePath =>
-  (pathFns[type ?? 'bezier'] ?? bezierPath)(s);
+  s.waypoints && s.waypoints.length > 0
+    ? splinePath([s.source, ...s.waypoints, s.target])
+    : (pathFns[type ?? 'bezier'] ?? bezierPath)(s);

@@ -639,6 +639,18 @@ export class FlowStore {
   }
 
   /**
+   * Transiently set an edge's control points and re-render it, without touching
+   * history — for live feedback while dragging an editable edge. On drop,
+   * restore the pre-drag value and call {@link updateEdge} once so a single undo
+   * captures the net move.
+   */
+  setEdgeControlPointsLive(id: string, points: XY[]): void {
+    const prev = this.edges.get(id);
+    if (!prev) return;
+    this._replaceEdge({ ...prev, controlPoints: points });
+  }
+
+  /**
    * Diff-sync the whole graph (used by controlled mode and loadSnapshot).
    * Unchanged elements are left untouched, so selection, measured sizes and
    * fine-grained subscriptions survive a controlled-props round trip.

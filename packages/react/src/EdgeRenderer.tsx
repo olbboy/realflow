@@ -1,6 +1,6 @@
 import { memo, useRef } from 'react';
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
-import type { EdgeMarker, Side } from '@realflow/core';
+import type { EdgeMarker, Side, XY } from '@realflow/core';
 import { edgePath, roundedPath, routeOrthogonal, screenToFlow } from '@realflow/core';
 import { useFlowStore } from './context';
 import { useConfig, useContainer } from './config';
@@ -13,6 +13,7 @@ const markerUrl = (m?: EdgeMarker): string | undefined =>
 export const EdgeView = memo(function EdgeView({ id }: { id: string }) {
   const store = useFlowStore();
   const config = useConfig();
+  const container = useContainer();
   // Orthogonal edges depend on OTHER nodes (obstacles), so they must also
   // re-render on any graph change; normal edges only track their endpoints.
   const isOrtho = store.edges.get(id)?.type === 'orthogonal';
@@ -28,8 +29,9 @@ export const EdgeView = memo(function EdgeView({ id }: { id: string }) {
 
   const type = edge.type ?? 'bezier';
   const Custom = config.edgeTypes[type];
+  const hasControlPoints = (edge.controlPoints?.length ?? 0) > 0;
   const { d, label } =
-    !Custom && type === 'orthogonal'
+    !Custom && type === 'orthogonal' && !hasControlPoints
       ? roundedPath(
           routeOrthogonal({
             source: geo.source,
@@ -45,6 +47,7 @@ export const EdgeView = memo(function EdgeView({ id }: { id: string }) {
           sourceSide: geo.sourceSide,
           target: geo.target,
           targetSide: geo.targetSide,
+          waypoints: edge.controlPoints,
         });
 
   const select = (e: ReactPointerEvent): void => {
@@ -61,6 +64,30 @@ export const EdgeView = memo(function EdgeView({ id }: { id: string }) {
   const onClick = (e: ReactMouseEvent): void => {
     e.stopPropagation();
     config.onEdgeClick?.(e, edge);
+  };
+
+  // Double-click the edge to add an editable control point at the pointer,
+  // inserted into the segment it is nearest so multi-point order stays natural.
+  const addControlPoint = (e: ReactMouseEvent): void => {
+    if (config.readOnly || edge.selectable === false || edge.deletable === false) return;
+    e.stopPropagation();
+    const r = container.current?.getBoundingClientRect();
+    const p = screenToFlow({ x: e.clientX - (r?.left ?? 0), y: e.clientY - (r?.top ?? 0) }, store.viewport);
+    const cps = edge.controlPoints ?? [];
+    const chain = [geo.source, ...cps, geo.target];
+    let at = cps.length;
+    let best = Infinity;
+    for (let i = 0; i < chain.length - 1; i++) {
+      const dseg = distToSegment(p, chain[i], chain[i + 1]);
+      if (dseg < best) {
+        best = dseg;
+        at = i;
+      }
+    }
+    const next = [...cps];
+    next.splice(at, 0, p);
+    store.updateEdge(id, { controlPoints: next });
+    store.setSelection([], [id]);
   };
 
   if (Custom) {
@@ -91,7 +118,7 @@ export const EdgeView = memo(function EdgeView({ id }: { id: string }) {
       }${edge.className ? ` ${edge.className}` : ''}`}
       data-id={id}
     >
-      <path className="rf-edge-hit" d={d} onPointerDown={select} onClick={onClick} />
+      <path className="rf-edge-hit" d={d} onPointerDown={select} onClick={onClick} onDoubleClick={addControlPoint} />
       <path
         className="rf-edge-path"
         d={d}
@@ -111,6 +138,9 @@ export const EdgeView = memo(function EdgeView({ id }: { id: string }) {
         <>
           <ReconnectHandle edgeId={id} end="source" x={geo.source.x} y={geo.source.y} />
           <ReconnectHandle edgeId={id} end="target" x={geo.target.x} y={geo.target.y} />
+          {(edge.controlPoints ?? []).map((cp, i) => (
+            <ControlPointHandle key={i} edgeId={id} index={i} x={cp.x} y={cp.y} />
+          ))}
         </>
       ) : null}
     </g>
@@ -168,6 +198,84 @@ const ReconnectHandle = memo(function ReconnectHandle({
       onPointerDown={onPointerDown}
       role="button"
       aria-label={`reconnect ${end}`}
+    />
+  );
+});
+
+/** Perpendicular distance from point `p` to segment `a`–`b`. */
+const distToSegment = (p: XY, a: XY, b: XY): number => {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const len2 = dx * dx + dy * dy;
+  if (len2 === 0) return Math.hypot(p.x - a.x, p.y - a.y);
+  let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+};
+
+/** Draggable control point on a selected editable edge; double-click removes it. */
+const ControlPointHandle = memo(function ControlPointHandle({
+  edgeId,
+  index,
+  x,
+  y,
+}: {
+  edgeId: string;
+  index: number;
+  x: number;
+  y: number;
+}) {
+  const store = useFlowStore();
+  const container = useContainer();
+  const onPointerDown = (e: ReactPointerEvent<SVGCircleElement>): void => {
+    if (e.button !== 0) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const el = e.currentTarget;
+    try {
+      el.setPointerCapture(e.pointerId);
+    } catch {
+      /* noop */
+    }
+    const before = [...(store.edges.get(edgeId)?.controlPoints ?? [])];
+    const toFlow = (cx: number, cy: number): XY => {
+      const r = container.current?.getBoundingClientRect();
+      return screenToFlow({ x: cx - (r?.left ?? 0), y: cy - (r?.top ?? 0) }, store.viewport);
+    };
+    const move = (ev: PointerEvent): void => {
+      const cur = store.edges.get(edgeId)?.controlPoints ?? before;
+      const pts = [...cur];
+      pts[index] = toFlow(ev.clientX, ev.clientY);
+      store.setEdgeControlPointsLive(edgeId, pts);
+    };
+    const up = (): void => {
+      el.removeEventListener('pointermove', move);
+      el.removeEventListener('pointerup', up);
+      el.removeEventListener('pointercancel', up);
+      const final = store.edges.get(edgeId)?.controlPoints ?? before;
+      // Restore the pre-drag value, then record once so undo captures net move.
+      store.setEdgeControlPointsLive(edgeId, before);
+      store.updateEdge(edgeId, { controlPoints: final });
+    };
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+  };
+  const onDoubleClick = (e: ReactMouseEvent): void => {
+    e.stopPropagation();
+    const cur = store.edges.get(edgeId)?.controlPoints ?? [];
+    store.updateEdge(edgeId, { controlPoints: cur.filter((_, i) => i !== index) });
+  };
+  return (
+    <circle
+      className="rf-edge-control"
+      cx={x}
+      cy={y}
+      r={5}
+      onPointerDown={onPointerDown}
+      onDoubleClick={onDoubleClick}
+      role="button"
+      aria-label="edge control point"
     />
   );
 });

@@ -596,6 +596,16 @@
   fill: var(--rf-accent-soft);
   r: 6;
 }
+.rf-edge-control {
+  fill: var(--rf-accent);
+  stroke: var(--rf-node-bg);
+  stroke-width: 1.5;
+  cursor: grab;
+  pointer-events: all;
+}
+.rf-edge-control:hover {
+  r: 6;
+}
 
 /* ── accessibility: keyboard focus ring ───────────────────────────────── */
 

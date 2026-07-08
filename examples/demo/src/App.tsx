@@ -192,7 +192,7 @@ export default function App() {
             <button onClick={exportSvg} title="Download the flow as SVG">⤓ SVG</button>
           </Panel>
           <Panel position="bottom-center" className="demo-hint">
-            drag from a handle to connect · shift-drag to box-select · ⌘Z undo · scroll to zoom
+            drag from a handle to connect · double-click an edge to bend it · shift-drag to box-select · ⌘Z undo · scroll to zoom
           </Panel>
           <FpsMeter />
         </RealFlow>

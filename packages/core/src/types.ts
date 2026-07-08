@@ -91,6 +91,8 @@ export interface Edge<T = Record<string, unknown>> {
   targetHandle?: string;
   /** Path style or a custom edge type key. */
   type?: EdgePathType | (string & {});
+  /** User-placed control points (flow coords) for editable edges. */
+  controlPoints?: XY[];
   label?: string;
   animated?: boolean;
   selected?: boolean;
