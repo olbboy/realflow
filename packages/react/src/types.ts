@@ -78,6 +78,8 @@ export interface RealFlowProps {
   alignmentGuides?: boolean;
   /** Reject connections that would create a directed cycle. */
   preventCycles?: boolean;
+  /** Dynamic grouping: attach/detach a node to a `group` node on drag-drop. */
+  reparentOnDrop?: boolean;
   allowDuplicateEdges?: boolean;
   validateConnection?: ConnectionValidator;
   defaultEdgeOptions?: Partial<Edge> & { markerEnd?: EdgeMarker };

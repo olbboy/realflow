@@ -164,6 +164,7 @@ export default function App() {
           colorMode={dark ? 'dark' : 'light'}
           defaultEdgeOptions={{ type: 'bezier', markerEnd: { type: 'arrowclosed' } }}
           preventCycles={isShowcase}
+          reparentOnDrop={isShowcase}
           snapGrid={0}
           onInit={(api) => {
             apiRef.current = api;

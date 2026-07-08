@@ -175,6 +175,12 @@ export interface StoreOptions {
   validateConnection?: ConnectionValidator;
   /** Disallow connections that would create a cycle. */
   preventCycles?: boolean;
+  /**
+   * Dynamic grouping: on drag-drop, attach a node to the smallest `group` node
+   * it lands inside, or detach it when dropped outside. Off by default so
+   * dragging never silently reparents unless the app opts in.
+   */
+  reparentOnDrop?: boolean;
   /** Allow multiple edges between the same handle pair. */
   allowDuplicateEdges?: boolean;
   /** Margin (in flow px) added around the viewport for culling. */

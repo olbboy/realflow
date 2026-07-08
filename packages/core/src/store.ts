@@ -1291,29 +1291,83 @@ export class FlowStore {
       const n = this.nodes.get(id);
       if (n) after.set(id, { ...n.position });
     }
-    this.record('move', {
-      undo: () =>
-        this.batch(() => {
-          for (const [id, pos] of before) {
-            const n = this.nodes.get(id);
-            if (n) {
-              this.nodes.set(id, { ...n, position: pos });
-              this.touchNode(id);
+    this.transact('move', () => {
+      this.record('move', {
+        undo: () =>
+          this.batch(() => {
+            for (const [id, pos] of before) {
+              const n = this.nodes.get(id);
+              if (n) {
+                this.nodes.set(id, { ...n, position: pos });
+                this.touchNode(id);
+              }
             }
-          }
-        }),
-      redo: () =>
-        this.batch(() => {
-          for (const [id, pos] of after) {
-            const n = this.nodes.get(id);
-            if (n) {
-              this.nodes.set(id, { ...n, position: pos });
-              this.touchNode(id);
+          }),
+        redo: () =>
+          this.batch(() => {
+            for (const [id, pos] of after) {
+              const n = this.nodes.get(id);
+              if (n) {
+                this.nodes.set(id, { ...n, position: pos });
+                this.touchNode(id);
+              }
             }
-          }
-        }),
+          }),
+      });
+      // Dynamic grouping: attach/detach dropped nodes to the group under them.
+      if (this.options.reparentOnDrop) {
+        for (const id of drag.ids) this._reparentByOverlap(id);
+      }
     });
     this.commit();
+  }
+
+  /** True if `candidate` is a parentId-descendant of `ancestor`. */
+  private _isParentDescendant(candidate: string, ancestor: string): boolean {
+    let p = this.nodes.get(candidate)?.parentId;
+    const seen = new Set<string>();
+    while (p && !seen.has(p)) {
+      if (p === ancestor) return true;
+      seen.add(p);
+      p = this.nodes.get(p)?.parentId;
+    }
+    return false;
+  }
+
+  /**
+   * Attach a node to the smallest visible `group` node whose bounds contain the
+   * node's absolute center, or detach it when dropped outside every group.
+   * Skips groups nested under the node (no parent cycles). Rebases position so
+   * the node does not visually move. Called from endDrag when reparentOnDrop is
+   * enabled; assumes it runs inside a transaction.
+   */
+  private _reparentByOverlap(id: string): void {
+    const node = this.nodes.get(id);
+    if (!node) return;
+    const abs = this.absolutePosition(id);
+    const cx = abs.x + (node.width ?? DEFAULT_NODE_WIDTH) / 2;
+    const cy = abs.y + (node.height ?? DEFAULT_NODE_HEIGHT) / 2;
+
+    let target: string | undefined;
+    let targetArea = Infinity;
+    for (const g of this.nodes.values()) {
+      if (g.id === id || g.type !== 'group' || g.hidden || this._isParentDescendant(g.id, id)) continue;
+      const gAbs = this.absolutePosition(g.id);
+      const gw = g.width ?? DEFAULT_NODE_WIDTH;
+      const gh = g.height ?? DEFAULT_NODE_HEIGHT;
+      if (cx >= gAbs.x && cx <= gAbs.x + gw && cy >= gAbs.y && cy <= gAbs.y + gh && gw * gh < targetArea) {
+        target = g.id;
+        targetArea = gw * gh;
+      }
+    }
+
+    if (target === node.parentId) return; // already correctly parented
+    if (target) {
+      const gAbs = this.absolutePosition(target);
+      this.updateNode(id, { parentId: target, position: { x: abs.x - gAbs.x, y: abs.y - gAbs.y } });
+    } else if (node.parentId) {
+      this.updateNode(id, { parentId: undefined, position: abs });
+    }
   }
 
   get dragging(): boolean {
