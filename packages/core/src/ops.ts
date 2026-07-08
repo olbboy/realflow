@@ -1,5 +1,5 @@
 import type { Edge, Node, XY } from './types';
-import type { FlowStore } from './store';
+import { type FlowStore, DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT } from './store';
 import { layout as runLayout, type LayoutDirection, type LayoutType } from './layout';
 import { uid } from './utils';
 
@@ -373,6 +373,145 @@ export const toMermaid = (store: FlowStore, direction: 'LR' | 'TD' = 'LR'): stri
     lines.push(e.label ? `  ${e.source} -->|${esc(e.label)}| ${e.target}` : `  ${e.source} --> ${e.target}`);
   }
   return lines.join('\n');
+};
+
+/** Options for {@link toSvg}. All colors default to the dark theme. */
+export interface ToSvgOptions {
+  /** Padding around the graph bounds, in px. Default 24. */
+  padding?: number;
+  /** Background rect fill; `null` or `'transparent'` omits it. Default `'#0b0d10'`. */
+  background?: string | null;
+  /** Node rectangle fill. Default `'#16181d'`. */
+  nodeFill?: string;
+  /** Node rectangle stroke. Default `'#2b2f37'`. */
+  nodeStroke?: string;
+  /** Node corner radius. Default 8. */
+  nodeRadius?: number;
+  /** Edge stroke color. Default `'#4b5563'`. */
+  edgeStroke?: string;
+  /** Label / text color. Default `'#e5e7eb'`. */
+  textColor?: string;
+  /** Font family. Default a system-UI stack. */
+  fontFamily?: string;
+}
+
+const xmlEscape = (s: string): string =>
+  s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+/**
+ * Serialize the graph to a standalone, self-contained SVG string — a
+ * zero-dependency, vector "download image of the flow". Pure and deterministic
+ * (no DOM, no measurement pass), so the same call also runs server-side for
+ * thumbnails. Child positions are resolved to absolute coordinates through
+ * `parentId`; unmeasured nodes fall back to the default node size.
+ */
+export const toSvg = (store: FlowStore, options: ToSvgOptions = {}): string => {
+  const {
+    padding = 24,
+    background = '#0b0d10',
+    nodeFill = '#16181d',
+    nodeStroke = '#2b2f37',
+    nodeRadius = 8,
+    edgeStroke = '#4b5563',
+    textColor = '#e5e7eb',
+    fontFamily = 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
+  } = options;
+
+  const nodes = store.getNodes();
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+
+  // Absolute position = this node's position plus every ancestor's (cycle-guarded).
+  const absPos = (n: Node): XY => {
+    let x = n.position.x;
+    let y = n.position.y;
+    const seen = new Set<string>([n.id]);
+    let p = n.parentId ? byId.get(n.parentId) : undefined;
+    while (p && !seen.has(p.id)) {
+      x += p.position.x;
+      y += p.position.y;
+      seen.add(p.id);
+      p = p.parentId ? byId.get(p.parentId) : undefined;
+    }
+    return { x, y };
+  };
+
+  const box = (n: Node): { x: number; y: number; w: number; h: number } => {
+    const { x, y } = absPos(n);
+    return { x, y, w: n.width ?? DEFAULT_NODE_WIDTH, h: n.height ?? DEFAULT_NODE_HEIGHT };
+  };
+
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const n of nodes) {
+    const b = box(n);
+    minX = Math.min(minX, b.x);
+    minY = Math.min(minY, b.y);
+    maxX = Math.max(maxX, b.x + b.w);
+    maxY = Math.max(maxY, b.y + b.h);
+  }
+  if (!Number.isFinite(minX)) {
+    // Empty graph — emit a valid, non-NaN placeholder viewBox.
+    minX = 0;
+    minY = 0;
+    maxX = 0;
+    maxY = 0;
+  }
+
+  const vbX = minX - padding;
+  const vbY = minY - padding;
+  const vbW = maxX - minX + padding * 2;
+  const vbH = maxY - minY + padding * 2;
+
+  const parts: string[] = [
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vbX} ${vbY} ${vbW} ${vbH}" width="${vbW}" height="${vbH}" font-family="${xmlEscape(fontFamily)}">`,
+  ];
+  if (background && background !== 'transparent') {
+    parts.push(`<rect x="${vbX}" y="${vbY}" width="${vbW}" height="${vbH}" fill="${xmlEscape(background)}"/>`);
+  }
+
+  // Edges under nodes: source right-mid → target left-mid, as a bezier.
+  for (const e of store.getEdges()) {
+    const s = byId.get(e.source);
+    const t = byId.get(e.target);
+    if (!s || !t) continue;
+    const sb = box(s);
+    const tb = box(t);
+    const x1 = sb.x + sb.w;
+    const y1 = sb.y + sb.h / 2;
+    const x2 = tb.x;
+    const y2 = tb.y + tb.h / 2;
+    const mx = (x1 + x2) / 2;
+    parts.push(
+      `<path d="M ${x1} ${y1} C ${mx} ${y1} ${mx} ${y2} ${x2} ${y2}" fill="none" stroke="${xmlEscape(edgeStroke)}" stroke-width="1.5"/>`
+    );
+    if (e.label) {
+      parts.push(
+        `<text x="${mx}" y="${(y1 + y2) / 2 - 4}" fill="${xmlEscape(textColor)}" font-size="11" text-anchor="middle">${xmlEscape(e.label)}</text>`
+      );
+    }
+  }
+
+  // Nodes on top.
+  for (const n of nodes) {
+    const b = box(n);
+    parts.push(
+      `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="${nodeRadius}" fill="${xmlEscape(nodeFill)}" stroke="${xmlEscape(nodeStroke)}" stroke-width="1"/>`
+    );
+    const label = asString((n.data as Record<string, unknown>)?.label) ?? n.id;
+    parts.push(
+      `<text x="${b.x + b.w / 2}" y="${b.y + b.h / 2 + 4}" fill="${xmlEscape(textColor)}" font-size="13" text-anchor="middle">${xmlEscape(label)}</text>`
+    );
+  }
+
+  parts.push('</svg>');
+  return parts.join('\n');
 };
 
 /**

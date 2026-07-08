@@ -4,10 +4,11 @@ import {
   Controls,
   MiniMap,
   Panel,
-  ReFlow,
+  RealFlow,
+  toSvg,
   uid,
   type LayoutType,
-  type ReflowApi,
+  type RealFlowApi,
 } from '@realflow/react';
 import { demoNodeTypes, makeStress, showcaseEdges, showcaseNodes } from './scenes';
 import { AIScene } from './AIScene';
@@ -67,12 +68,24 @@ export default function App() {
   const [dark, setDark] = useState(
     typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches
   );
-  const apiRef = useRef<ReflowApi | null>(null);
+  const apiRef = useRef<RealFlowApi | null>(null);
   const { nodes, edges } = sceneData(scene);
   const isShowcase = scene === 'showcase';
 
   const runLayout = (type: LayoutType): void => {
     apiRef.current?.layout(type, { duration: 350 });
+  };
+
+  const exportSvg = (): void => {
+    const api = apiRef.current;
+    if (!api) return;
+    const blob = new Blob([toSvg(api.store)], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'realflow.svg';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const addNode = (): void => {
@@ -94,7 +107,7 @@ export default function App() {
     <div className={`demo-app${dark ? ' demo-dark' : ''}`}>
       <header className="demo-header">
         <div className="demo-brand">
-          <span className="demo-logo">◆</span> ReFlow
+          <span className="demo-logo">◆</span> RealFlow
           <span className="demo-tagline">node-based UIs for React, reimagined</span>
         </div>
         <nav className="demo-tabs">
@@ -132,7 +145,7 @@ export default function App() {
         ) : scene === 'routing' ? (
           <RoutingScene key="routing" dark={dark} />
         ) : (
-        <ReFlow
+        <RealFlow
           key={scene}
           defaultNodes={nodes}
           defaultEdges={edges}
@@ -159,12 +172,14 @@ export default function App() {
             <button onClick={() => runLayout('force')}>force</button>
             <button onClick={() => runLayout('radial')}>radial</button>
             <button onClick={() => runLayout('grid')}>grid</button>
+            <span className="demo-toolbar-label">export</span>
+            <button onClick={exportSvg} title="Download the flow as SVG">⤓ SVG</button>
           </Panel>
           <Panel position="bottom-center" className="demo-hint">
             drag from a handle to connect · shift-drag to box-select · ⌘Z undo · scroll to zoom
           </Panel>
           <FpsMeter />
-        </ReFlow>
+        </RealFlow>
         )}
       </main>
     </div>
