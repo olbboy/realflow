@@ -21,7 +21,10 @@ async function viewportTransform(page: Page) {
 }
 
 test.describe('framework-component nodes', () => {
-  test.beforeEach(async (_, testInfo) => {
+  // Playwright requires the first arg to be an object-destructuring pattern so
+  // it can resolve fixtures statically; we need none here, hence the empty one.
+  // eslint-disable-next-line no-empty-pattern
+  test.beforeEach(async ({}, testInfo) => {
     test.skip(!!testInfo.project.use.isMobile, 'desktop pointer interactions');
   });
 
