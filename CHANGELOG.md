@@ -8,6 +8,8 @@ contain breaking changes to APIs marked **experimental** in
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-07-08
+
 ### Added
 - **`@realflow/compat`** — a React Flow (xyflow) API-compatibility layer. Migrate
   an existing app by changing imports: `ReactFlow`, `Handle` (`type`/`position`),
