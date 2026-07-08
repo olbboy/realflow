@@ -16,23 +16,23 @@
 
 | Verdict | Count | Examples |
 | --- | --- | --- |
-| **HƠN** (RealFlow wins — built-in & MIT-free vs paid) | **9** | Auto Layout · Force Layout · Dynamic Layouting · Edge Routing · Helper Lines · Copy & Paste · Undo & Redo · Collaborative · **Server-Side Image** (closed this pass) |
+| **HƠN** (RealFlow wins — built-in & MIT-free vs paid) | **12** | Auto Layout · Force Layout · Dynamic Layouting · Edge Routing · Helper Lines · Copy & Paste · Undo & Redo · Collaborative · Server-Side Image · **Selection Grouping** · **Expand & Collapse** · **Node Position Animation** |
 | **NGANG / partial** | **1** | Parent–Child Relation (data model ✅, drag-to-attach gesture ❌) |
-| **THUA** (React Flow wins — RealFlow gap) | **6** | Editable Edge · Expand & Collapse · Node Position Animation · Selection Grouping · Freehand Draw · Shapes |
+| **THUA** (React Flow wins — RealFlow gap) | **3** | Editable Edge · Freehand Draw · Shapes |
 
-> **Changed this audit pass:** Server-Side Image moved THUA→HƠN. A pure,
-> headless `toSvg(store)` was implemented in `@realflow/core` (6 passing tests in
-> `svg-export.test.ts`, XML-injection-safe, deterministic), wired to a
-> "⤓ SVG" button in the demo, and its output was **rendered and verified** as a
-> real flow image. Migration, not marketing.
+> **Closed by migration (with tests + live proof):**
+> - **Server-Side Image** → headless `toSvg(store)` (`svg-export.test.ts`, 6) + demo "⤓ SVG"; output rendered & verified.
+> - **Selection Grouping** → `store.groupSelection()` / `ungroup()` (`grouping.test.ts`, 6) + demo "⧉ Group"; group container renders live.
+> - **Expand & Collapse** → `collapseNode` / `expandNode` / `toggleCollapse` (`collapse.test.ts`, 6, incl. nested) + demo "⊟ Collapse"; subtree hides live.
+> - **Node Position Animation** → `layout({ animate })` + scoped CSS transition (`layout-api.test.tsx`, +2) + drag-clear guard; live computed style confirms `transition: transform 0.35s` on layout.
 
-**Honest headline:** RealFlow genuinely puts React Flow's **engine/data** paywall
-features in the box for free (the whole layout family, edge routing, undo/redo,
-copy-paste, collaboration, alignment guides, and now vector image export) —
-**9 clean wins, all test-backed**. It does **not** yet cover React Flow Pro's
-**canvas-authoring tools** (freehand, shapes, draggable edge control points,
-expand/collapse, group-by-selection, per-node position tweening) — **6 real
-gaps**. So RealFlow is **not** a strict superset of React Flow Pro, and the
+**Honest headline:** RealFlow genuinely puts React Flow's paywall features in the
+box for free — the whole layout family, edge routing, undo/redo, copy-paste,
+collaboration, alignment guides, vector image export, grouping, expand/collapse,
+and position tweening — **12 clean wins, all test-backed**. It does **not** yet
+cover 3 React Flow Pro **canvas-drawing tools** (freehand, shapes, draggable edge
+control points) plus the Parent–Child **drag-to-attach gesture** — the remaining
+real gaps. So RealFlow is **not** a strict superset of React Flow Pro, and the
 README's "most complete" framing over-reaches (flagged in AUDIT.md §4).
 
 ---
@@ -55,9 +55,9 @@ measured.
 | 8 | Collaborative (Yjs) | 💰 | Built-in transport-agnostic CRDT (Lamport LWW) + `RemoteCursors` presence, Yjs interop | ~10 | **HƠN** | `collab.test.ts` (6) + `collab-yjs.test.ts` (real Yjs) |
 | 9 | Parent–Child Relation | 💰 | `parentId` nesting, children move w/ parent (1 transform), `extent:'parent'` clamp, reparent-on-delete — **but no drag-to-attach gesture** | ~5 | **NGANG** | `store.test.ts` "reparents children"; gesture gap below |
 | 10 | Editable Edge (control points) | 💰 | Endpoint **reconnect** ✅; draggable **mid-edge control points ❌** | — | **THUA** | `EdgeRenderer.tsx` reconnect only |
-| 11 | Expand & Collapse (placeholder tree) | 💰 | ❌ not implemented | — | **THUA** | no source match |
-| 12 | Node Position Animation | 💰 | Camera tweens (`fitView({duration})`); **per-node x/y does not tween** (nodes snap; `.rf-node` has no `transition:transform`) | — | **THUA** | `styles.css` L198 transitions border/shadow only |
-| 13 | Selection Grouping (box → group) | 💰 | Box-select ✅; **"group selected into a container" command ❌** | — | **THUA** | no grouping command |
+| 11 | Expand & Collapse | 💰 | **Built-in** `collapseNode`/`expandNode`/`toggleCollapse` — hides edge-descendants, nested composes | ~2 | **HƠN** | `collapse.test.ts` (6); demo "⊟ Collapse", subtree hides live |
+| 12 | Node Position Animation | 💰 | **Built-in** `layout({ animate })` — scoped `transition:transform` armed for the layout window, cleared on drag | ~0 | **HƠN** | `layout-api.test.tsx` (+2); live computed `transition: transform 0.35s` |
+| 13 | Selection Grouping (box → group) | 💰 | **Built-in** `groupSelection()`/`ungroup()` — container sized to bbox, members rebased, one undo | ~2 | **HƠN** | `grouping.test.ts` (6); demo "⧉ Group", container renders live |
 | 14 | Freehand Draw | 💰 | ❌ not implemented | — | **THUA** | no source match |
 | 15 | Shapes / Whiteboard | 💰 | ❌ not implemented | — | **THUA** | no source match |
 | 16 | Server-Side Image Creation | 💰 | **Built-in `toSvg(store)`** — pure, headless, deterministic, vector (also runs server-side); demo "⤓ SVG" button | ~3 | **HƠN** | `svg-export.test.ts` (6); output rendered & verified. Vector + zero-dep vs React Flow's html-to-image PNG |
@@ -69,37 +69,26 @@ DIY in React Flow.
 
 ---
 
-## Backlog — closing the remaining 6 gaps (concrete, sized)
+## Backlog — closing the remaining gaps (concrete, sized)
 
-Ordered cheapest → hardest. Each is a real task, not a wish. (Server-Side Image
-was #7's cheapest peer and is already **done** — see scoreboard.)
+Ordered cheapest → hardest. Each is a real task, not a wish. Four gaps were
+closed this session (Server-Side Image, Selection Grouping, Expand & Collapse,
+Node Position Animation — see scoreboard).
 
-1. **Node Position Animation (#12) — ~½ day, cheapest win.** Add a scoped
-   `transition: transform Nms ease` toggled by an `.rf-animating` class on the
-   container during a layout tween window; exclude dragging and freshly
-   culled-in nodes. Convert THUA→HƠN with a visible glide. *Highest ROI.*
-   (Investigated this pass: `.rf-node` currently transitions only
-   border/shadow, so nodes snap — the wiring point is `RealFlow.tsx` subscribing
-   to a layout signal from the store.)
+1. **Parent–Child drag-to-attach (#9 gesture) — ~1–2 days.** On drag-stop, hit-test
+   the node against group bounds; set/clear `parentId` with position rebasing;
+   toolbar "detach". Store already reparents (and now `groupSelection`/`ungroup`
+   exist); this is the missing gesture layer. Turns the one NGANG into HƠN.
 2. **Editable Edge control points (#10) — ~1–2 days.** Store optional
    `edge.controlPoints`; render draggable handles on selected edges; feed points
    into the bezier/linear path builder in `paths.ts`. Reconnect already exists, so
    this is additive.
-3. **Selection Grouping (#13) — ~1 day.** A `groupSelection()` command: create a
-   group node sized to the selection bbox, set `parentId` on selected nodes, one
-   undo. Data model (parentId/extent) already supports it.
-4. **Parent–Child drag-to-attach (#9 gesture) — ~1–2 days.** On drag-stop, hit-test
-   the pointer against group bounds; set/clear `parentId` with position rebasing;
-   toolbar "detach". Store already reparents; this is the missing gesture layer.
-5. **Expand & Collapse (#11) — ~2 days.** A collapsed flag that hides a subtree +
-   a placeholder "＋" node; on expand, `layoutIncremental` re-lays the revealed
-   nodes. Reuses layout + subflow machinery.
-6. **Freehand Draw (#14) + Shapes (#15) — ~3–5 days together.** A drawing mode:
+3. **Freehand Draw (#14) + Shapes (#15) — ~3–5 days together.** A drawing mode:
    pointer capture → stroke (perfect-freehand or self-rolled) → a selectable,
    resizable freehand/shape node type (rect/ellipse/diamond via SDF or SVG). The
    biggest gap — a new interaction mode, not just a node type.
 
-**Total to strict Pro parity: ~1.5 focused weeks.** None are blocked; all reuse
+**Total to strict Pro parity: ~1 focused week.** None are blocked; all reuse
 existing store/layout/path primitives.
 
 ---

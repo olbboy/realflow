@@ -157,13 +157,18 @@ are all *scoping* ("vs which config", "which rig", "complete for what") rather t
 falsehoods. The one materially misleading framing is **"complete"** — addressed in
 GAPS.md.
 
-**Gap closed this pass (proof-by-migration).** To demonstrate the audit is not
-only documentation, one React Flow Pro gap was ported to a real, verified feature:
-**Server-Side Image Creation** → a pure headless `toSvg(store)` in `@realflow/core`
-(6 tests in `svg-export.test.ts`: well-formed, finite viewBox, XML-injection-safe,
-empty-graph-safe, `parentId` absolute-position resolution), wired to a "⤓ SVG"
-button in the demo, with its output rendered and eyeballed as a real flow image.
-Scoreboard now 9 win / 1 partial / 6 gap (see GAPS.md).
+**Gaps closed this pass (proof-by-migration).** To demonstrate the audit is not
+only documentation, **four** React Flow Pro gaps were ported to real, tested,
+live-verified features (each THUA→HƠN):
+
+1. **Server-Side Image** → headless `toSvg(store)` (`svg-export.test.ts`, 6; XML-injection-safe); demo "⤓ SVG"; output rendered.
+2. **Selection Grouping** → `store.groupSelection()`/`ungroup()` (`grouping.test.ts`, 6); demo "⧉ Group"; container renders live.
+3. **Expand & Collapse** → `collapseNode`/`expandNode`/`toggleCollapse` (`collapse.test.ts`, 6, incl. nested); demo "⊟ Collapse"; subtree hides live.
+4. **Node Position Animation** → `layout({ animate })` + scoped CSS transition (`layout-api.test.tsx`, +2) with a drag-clear guard; live computed style confirms `transition: transform 0.35s` on layout.
+
+Scoreboard now **12 win / 1 partial / 3 gap** (was 9/1/6). Test count 144 → 164.
+Remaining gaps: Editable Edge, Freehand Draw, Shapes (+ the Parent–Child
+drag-to-attach gesture). See GAPS.md.
 
 ---
 
