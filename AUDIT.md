@@ -158,17 +158,19 @@ falsehoods. The one materially misleading framing is **"complete"** — addresse
 GAPS.md.
 
 **Gaps closed this pass (proof-by-migration).** To demonstrate the audit is not
-only documentation, **four** React Flow Pro gaps were ported to real, tested,
-live-verified features (each THUA→HƠN):
+only documentation, **six** React Flow Pro gaps were ported to real, tested,
+live-verified features (each THUA/NGANG → HƠN):
 
 1. **Server-Side Image** → headless `toSvg(store)` (`svg-export.test.ts`, 6; XML-injection-safe); demo "⤓ SVG"; output rendered.
-2. **Selection Grouping** → `store.groupSelection()`/`ungroup()` (`grouping.test.ts`, 6); demo "⧉ Group"; container renders live.
+2. **Selection Grouping** → `groupSelection()`/`ungroup()` (`grouping.test.ts`, 6); demo "⧉ Group"; container renders live.
 3. **Expand & Collapse** → `collapseNode`/`expandNode`/`toggleCollapse` (`collapse.test.ts`, 6, incl. nested); demo "⊟ Collapse"; subtree hides live.
-4. **Node Position Animation** → `layout({ animate })` + scoped CSS transition (`layout-api.test.tsx`, +2) with a drag-clear guard; live computed style confirms `transition: transform 0.35s` on layout.
+4. **Node Position Animation** → `layout({ animate })` + scoped CSS transition (`layout-api.test.tsx`, +2, drag-clear guard); live computed `transition: transform 0.35s`.
+5. **Parent–Child drag-to-attach** → `reparentOnDrop` in `endDrag` (`reparent-on-drop.test.ts`, 6, cycle-guarded) + `reparentOnDrop` prop; live drag nests a node in a group (DOM + rebased position).
+6. **Editable Edge** → `edge.controlPoints` + `splinePath` + draggable handles / double-click (`editable-edges.test.ts`, 5); live spline renders through the control point.
 
-Scoreboard now **12 win / 1 partial / 3 gap** (was 9/1/6). Test count 144 → 164.
-Remaining gaps: Editable Edge, Freehand Draw, Shapes (+ the Parent–Child
-drag-to-attach gesture). See GAPS.md.
+Scoreboard now **14 win / 0 partial / 2 gap** (was 9/1/6). Test count 144 → 175.
+Only React Flow Pro's two canvas *drawing modes* remain — **Freehand Draw** and
+**Shapes/Whiteboard**. See GAPS.md.
 
 ---
 

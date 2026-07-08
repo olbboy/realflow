@@ -16,24 +16,26 @@
 
 | Verdict | Count | Examples |
 | --- | --- | --- |
-| **HƠN** (RealFlow wins — built-in & MIT-free vs paid) | **12** | Auto Layout · Force Layout · Dynamic Layouting · Edge Routing · Helper Lines · Copy & Paste · Undo & Redo · Collaborative · Server-Side Image · **Selection Grouping** · **Expand & Collapse** · **Node Position Animation** |
-| **NGANG / partial** | **1** | Parent–Child Relation (data model ✅, drag-to-attach gesture ❌) |
-| **THUA** (React Flow wins — RealFlow gap) | **3** | Editable Edge · Freehand Draw · Shapes |
+| **HƠN** (RealFlow wins — built-in & MIT-free vs paid) | **14** | Auto Layout · Force Layout · Dynamic Layouting · Edge Routing · Helper Lines · Copy & Paste · Undo & Redo · Collaborative · Server-Side Image · **Selection Grouping** · **Expand & Collapse** · **Node Position Animation** · **Parent–Child Relation** · **Editable Edge** |
+| **NGANG / partial** | **0** | — |
+| **THUA** (React Flow wins — RealFlow gap) | **2** | Freehand Draw · Shapes |
 
-> **Closed by migration (with tests + live proof):**
-> - **Server-Side Image** → headless `toSvg(store)` (`svg-export.test.ts`, 6) + demo "⤓ SVG"; output rendered & verified.
-> - **Selection Grouping** → `store.groupSelection()` / `ungroup()` (`grouping.test.ts`, 6) + demo "⧉ Group"; group container renders live.
+> **Closed by migration this session (tests + live proof):**
+> - **Server-Side Image** → headless `toSvg(store)` (`svg-export.test.ts`, 6) + demo "⤓ SVG"; output rendered.
+> - **Selection Grouping** → `groupSelection()` / `ungroup()` (`grouping.test.ts`, 6) + demo "⧉ Group"; container renders live.
 > - **Expand & Collapse** → `collapseNode` / `expandNode` / `toggleCollapse` (`collapse.test.ts`, 6, incl. nested) + demo "⊟ Collapse"; subtree hides live.
-> - **Node Position Animation** → `layout({ animate })` + scoped CSS transition (`layout-api.test.tsx`, +2) + drag-clear guard; live computed style confirms `transition: transform 0.35s` on layout.
+> - **Node Position Animation** → `layout({ animate })` + scoped CSS transition (`layout-api.test.tsx`, +2) + drag-clear guard; live computed `transition: transform 0.35s`.
+> - **Parent–Child drag-to-attach** → `reparentOnDrop` in `endDrag` (`reparent-on-drop.test.ts`, 6, cycle-guarded) + `reparentOnDrop` prop; live drag nests a node in a group (DOM + rebased position).
+> - **Editable Edge** → `edge.controlPoints` + `splinePath` + draggable handles / double-click add (`editable-edges.test.ts`, 5); live spline renders through the control point.
 
-**Honest headline:** RealFlow genuinely puts React Flow's paywall features in the
-box for free — the whole layout family, edge routing, undo/redo, copy-paste,
-collaboration, alignment guides, vector image export, grouping, expand/collapse,
-and position tweening — **12 clean wins, all test-backed**. It does **not** yet
-cover 3 React Flow Pro **canvas-drawing tools** (freehand, shapes, draggable edge
-control points) plus the Parent–Child **drag-to-attach gesture** — the remaining
-real gaps. So RealFlow is **not** a strict superset of React Flow Pro, and the
-README's "most complete" framing over-reaches (flagged in AUDIT.md §4).
+**Honest headline:** RealFlow now covers **14 of 16** React Flow Pro examples as
+built-in, MIT-free, test-backed features — the whole layout family, edge routing,
+undo/redo, copy-paste, collaboration, alignment guides, vector image export,
+grouping, expand/collapse, position tweening, dynamic grouping, and editable
+edges. The **2** remaining gaps are React Flow Pro's **freehand drawing** and
+**shapes/whiteboard** — genuinely new canvas *drawing modes*, not engine features.
+Until those ship, RealFlow is **not** a strict superset of React Flow Pro, and the
+README's "most complete" framing still slightly over-reaches (flagged in AUDIT.md §4).
 
 ---
 
@@ -53,8 +55,8 @@ measured.
 | 6 | Copy & Paste | 💰 | Built-in ⌘C/V/D/X, id-remapped, one undo | ~0 | **HƠN** | `clipboard-reconnect.test.ts` (7) |
 | 7 | Undo & Redo | 💰 | Built-in, **transactional**, drag-coalescing, `useHistory()` | ~0 | **HƠN** | `store.test.ts` undo suite; live ⌘Z. (React Flow's flagship Pro example — free here) |
 | 8 | Collaborative (Yjs) | 💰 | Built-in transport-agnostic CRDT (Lamport LWW) + `RemoteCursors` presence, Yjs interop | ~10 | **HƠN** | `collab.test.ts` (6) + `collab-yjs.test.ts` (real Yjs) |
-| 9 | Parent–Child Relation | 💰 | `parentId` nesting, children move w/ parent (1 transform), `extent:'parent'` clamp, reparent-on-delete — **but no drag-to-attach gesture** | ~5 | **NGANG** | `store.test.ts` "reparents children"; gesture gap below |
-| 10 | Editable Edge (control points) | 💰 | Endpoint **reconnect** ✅; draggable **mid-edge control points ❌** | — | **THUA** | `EdgeRenderer.tsx` reconnect only |
+| 9 | Parent–Child Relation | 💰 | `parentId` nesting, `extent:'parent'` clamp, reparent-on-delete, **plus `reparentOnDrop`** — drag a node into/out of a group to attach/detach | ~1 | **HƠN** | `reparent-on-drop.test.ts` (6, cycle-guarded); live drag nests a node (DOM + rebased pos) |
+| 10 | Editable Edge (control points) | 💰 | Endpoint reconnect ✅ **plus draggable spline control points** (`edge.controlPoints`), double-click to add/remove | ~0 | **HƠN** | `editable-edges.test.ts` (5); live spline renders through the control point |
 | 11 | Expand & Collapse | 💰 | **Built-in** `collapseNode`/`expandNode`/`toggleCollapse` — hides edge-descendants, nested composes | ~2 | **HƠN** | `collapse.test.ts` (6); demo "⊟ Collapse", subtree hides live |
 | 12 | Node Position Animation | 💰 | **Built-in** `layout({ animate })` — scoped `transition:transform` armed for the layout window, cleared on drag | ~0 | **HƠN** | `layout-api.test.tsx` (+2); live computed `transition: transform 0.35s` |
 | 13 | Selection Grouping (box → group) | 💰 | **Built-in** `groupSelection()`/`ungroup()` — container sized to bbox, members rebased, one undo | ~2 | **HƠN** | `grouping.test.ts` (6); demo "⧉ Group", container renders live |
@@ -69,27 +71,23 @@ DIY in React Flow.
 
 ---
 
-## Backlog — closing the remaining gaps (concrete, sized)
+## Backlog — the last 2 gaps (concrete, sized)
 
-Ordered cheapest → hardest. Each is a real task, not a wish. Four gaps were
-closed this session (Server-Side Image, Selection Grouping, Expand & Collapse,
-Node Position Animation — see scoreboard).
+Six gaps were closed this session (Server-Side Image, Selection Grouping, Expand &
+Collapse, Node Position Animation, Parent–Child drag-to-attach, Editable Edge —
+see scoreboard). Only the two genuine canvas *drawing modes* remain:
 
-1. **Parent–Child drag-to-attach (#9 gesture) — ~1–2 days.** On drag-stop, hit-test
-   the node against group bounds; set/clear `parentId` with position rebasing;
-   toolbar "detach". Store already reparents (and now `groupSelection`/`ungroup`
-   exist); this is the missing gesture layer. Turns the one NGANG into HƠN.
-2. **Editable Edge control points (#10) — ~1–2 days.** Store optional
-   `edge.controlPoints`; render draggable handles on selected edges; feed points
-   into the bezier/linear path builder in `paths.ts`. Reconnect already exists, so
-   this is additive.
-3. **Freehand Draw (#14) + Shapes (#15) — ~3–5 days together.** A drawing mode:
-   pointer capture → stroke (perfect-freehand or self-rolled) → a selectable,
-   resizable freehand/shape node type (rect/ellipse/diamond via SDF or SVG). The
-   biggest gap — a new interaction mode, not just a node type.
+1. **Shapes / Whiteboard (#15) — ~2–3 days.** A shape node kind
+   (rect/ellipse/diamond via SVG) + a draw-to-place mode (pointer down-drag on the
+   pane creates a sized shape); resize reuses the existing `NodeResizer`. The node
+   types are easy; the draw-to-create interaction is the real work.
+2. **Freehand Draw (#14) — ~3–4 days.** A drawing mode: pointer capture on the
+   pane → stroke smoothing (perfect-freehand or self-rolled) → a selectable,
+   resizable freehand node whose geometry is the captured path. The biggest gap —
+   a wholly new interaction mode, not just a node type.
 
-**Total to strict Pro parity: ~1 focused week.** None are blocked; all reuse
-existing store/layout/path primitives.
+**Total to strict Pro parity: ~1 focused week.** Neither is blocked; both are new
+pane-level drawing interactions layered on the existing node/resize primitives.
 
 ---
 
