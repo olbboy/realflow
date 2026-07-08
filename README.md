@@ -333,6 +333,13 @@ npm run bench      # reproducible head-to-head benchmark vs React Flow
 custom nodes, auto-layout, smart routing, AI ops, collaboration) with source
 shown side-by-side.
 
+**Process builder:** `npm run dev:process` —
+[`examples/process-builder`](./examples/process-builder) is a full
+approval-workflow editor (custom node cards, a branching condition node,
+drag-from-palette, undo/redo, snapshot save) assembled entirely on RealFlow
+primitives. A worked reference for building a real application shell on top of
+the canvas.
+
 ## Contributing
 
 Contributions are welcome — bug fixes, features, docs, benchmarks and honest

@@ -18,6 +18,7 @@
     "bench": "npm run bench -w realflow-benchmarks",
     "dev:docs": "npm run dev -w realflow-docs-site",
     "build:docs": "npm run build -w realflow-docs-site",
+    "dev:process": "npm run dev -w realflow-process-builder",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test:e2e": "playwright test --project=chromium --project=firefox --project=webkit --project=mobile-webkit",
