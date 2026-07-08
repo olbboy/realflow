@@ -1,5 +1,5 @@
 // React Flow ships these as enums; apps compare against Position.Left etc.
-// ReFlow uses the string values directly, so the enum values ARE the strings.
+// RealFlow uses the string values directly, so the enum values ARE the strings.
 
 export const Position = {
   Left: 'left',

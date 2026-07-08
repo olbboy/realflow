@@ -5,11 +5,11 @@ import {
   Handle,
   MiniMap,
   Panel,
-  ReFlow,
+  RealFlow,
   applyOperations,
   type FlowOperation,
   type NodeProps,
-  type ReflowApi,
+  type RealFlowApi,
 } from '@realflow/react';
 
 /** Node type used by the copilot: label + live execution status. */
@@ -118,7 +118,7 @@ const SCRIPT: Step[] = [
 ];
 
 export function AIScene({ dark }: { dark: boolean }) {
-  const apiRef = useRef<ReflowApi | null>(null);
+  const apiRef = useRef<RealFlowApi | null>(null);
   const [messages, setMessages] = useState<string[]>([]);
   const [running, setRunning] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -154,7 +154,7 @@ export function AIScene({ dark }: { dark: boolean }) {
   }, []);
 
   return (
-    <ReFlow
+    <RealFlow
       nodeTypes={agentNodeTypes}
       colorMode={dark ? 'dark' : 'light'}
       defaultEdgeOptions={{ type: 'smoothstep', markerEnd: { type: 'arrowclosed' } }}
@@ -182,6 +182,6 @@ export function AIScene({ dark }: { dark: boolean }) {
       <Panel position="bottom-center" className="demo-hint">
         an agent is driving this canvas with JSON operations — applyOperations(store, ops)
       </Panel>
-    </ReFlow>
+    </RealFlow>
   );
 }

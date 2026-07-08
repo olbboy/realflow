@@ -1,9 +1,9 @@
 {
-  "name": "reflow-ai-agent",
+  "name": "realflow-ai-agent",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Provider-agnostic AI agent that drives ReFlow via validated JSON operations (GLM / Gemini / Anthropic).",
+  "description": "Provider-agnostic AI agent that drives RealFlow via validated JSON operations (GLM / Gemini / Anthropic).",
   "scripts": {
     "generate": "node generate.mjs"
   },

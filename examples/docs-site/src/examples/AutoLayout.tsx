@@ -1,4 +1,4 @@
-import { ReFlow, Background, Panel, useReflow, type LayoutType } from '@realflow/react';
+import { RealFlow, Background, Panel, useRealFlow, type LayoutType } from '@realflow/react';
 
 const ids = ['root', 'a', 'b', 'c', 'd', 'e', 'f'];
 const nodes = ids.map((id, i) => ({ id, position: { x: (i % 3) * 40, y: i * 20 }, data: { label: id } }));
@@ -7,7 +7,7 @@ const edges = [
 ].map(([source, target], i) => ({ id: `e${i}`, source, target, markerEnd: { type: 'arrowclosed' as const } }));
 
 function Toolbar() {
-  const flow = useReflow();
+  const flow = useRealFlow();
   const run = (t: LayoutType) => flow.layout(t, { duration: 300 });
   return (
     <Panel position="top-right" style={{ display: 'flex', gap: 6 }}>
@@ -20,9 +20,9 @@ function Toolbar() {
 
 export function AutoLayout() {
   return (
-    <ReFlow defaultNodes={nodes} defaultEdges={edges}>
+    <RealFlow defaultNodes={nodes} defaultEdges={edges}>
       <Background />
       <Toolbar />
-    </ReFlow>
+    </RealFlow>
   );
 }

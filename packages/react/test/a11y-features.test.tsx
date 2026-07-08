@@ -2,13 +2,13 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { act, cleanup, render } from '@testing-library/react';
 import {
-  ReFlow,
+  RealFlow,
   NodeToolbar,
   NodeResizer,
   Handle,
-  useReflow,
+  useRealFlow,
   type NodeProps,
-  type ReflowApi,
+  type RealFlowApi,
 } from '@realflow/react';
 import { FlowStore, type Node } from '@realflow/core';
 
@@ -22,7 +22,7 @@ const nodes: Node[] = [
 
 describe('accessibility', () => {
   it('nodes are focusable with role, aria-label and aria-selected', () => {
-    const { container } = render(<ReFlow defaultNodes={nodes} fitViewOnInit={false} />);
+    const { container } = render(<RealFlow defaultNodes={nodes} fitViewOnInit={false} />);
     const nodeEls = container.querySelectorAll<HTMLElement>('.rf-node');
     expect(nodeEls.length).toBe(3);
     for (const el of nodeEls) {
@@ -36,7 +36,7 @@ describe('accessibility', () => {
   });
 
   it('focusing a node selects it', () => {
-    const { container } = render(<ReFlow defaultNodes={nodes} fitViewOnInit={false} />);
+    const { container } = render(<RealFlow defaultNodes={nodes} fitViewOnInit={false} />);
     const a = container.querySelector<HTMLElement>('.rf-node[data-id="a"]')!;
     act(() => a.focus());
     expect(a.className).toContain('rf-selected');
@@ -44,14 +44,14 @@ describe('accessibility', () => {
   });
 
   it('readOnly removes nodes from the tab order', () => {
-    const { container } = render(<ReFlow defaultNodes={nodes} readOnly fitViewOnInit={false} />);
+    const { container } = render(<RealFlow defaultNodes={nodes} readOnly fitViewOnInit={false} />);
     for (const el of container.querySelectorAll('.rf-node')) {
       expect(el.getAttribute('tabindex')).toBe('-1');
     }
   });
 
   it('the canvas has an application role and label', () => {
-    const { container } = render(<ReFlow defaultNodes={nodes} fitViewOnInit={false} />);
+    const { container } = render(<RealFlow defaultNodes={nodes} fitViewOnInit={false} />);
     const canvas = container.querySelector('.rf-container')!;
     expect(canvas.getAttribute('role')).toBe('application');
     expect(canvas.getAttribute('aria-label')).toBeTruthy();
@@ -84,9 +84,9 @@ describe('NodeToolbar & NodeResizer render inside a selected node', () => {
   }
 
   it('toolbar and resizer appear only when the node is selected', () => {
-    let api: ReflowApi | null = null;
+    let api: RealFlowApi | null = null;
     const { container } = render(
-      <ReFlow
+      <RealFlow
         defaultNodes={[{ id: 'x', type: 'tb', position: { x: 0, y: 0 }, data: { label: 'X' }, width: 120, height: 60 }]}
         nodeTypes={{ tb: ToolbarNode }}
         fitViewOnInit={false}
@@ -103,23 +103,23 @@ describe('NodeToolbar & NodeResizer render inside a selected node', () => {
   });
 });
 
-describe('useReflow clipboard API', () => {
+describe('useRealFlow clipboard API', () => {
   function Probe() {
-    const flow = useReflow();
+    const flow = useRealFlow();
     (globalThis as Record<string, unknown>).__flow = flow;
     return null;
   }
   it('duplicate via API adds cloned nodes', () => {
-    let api: ReflowApi | null = null;
+    let api: RealFlowApi | null = null;
     render(
-      <ReFlow
+      <RealFlow
         defaultNodes={nodes}
         defaultEdges={[{ id: 'e1', source: 'a', target: 'b' }]}
         fitViewOnInit={false}
         onInit={(a) => (api = a)}
       >
         <Probe />
-      </ReFlow>
+      </RealFlow>
     );
     act(() => {
       api!.store.setSelection(['a', 'b']);

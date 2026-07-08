@@ -16,7 +16,7 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       input: {
-        reflow: resolve(__dirname, 'reflow.html'),
+        realflow: resolve(__dirname, 'realflow.html'),
         xyflow: resolve(__dirname, 'xyflow.html'),
       },
     },

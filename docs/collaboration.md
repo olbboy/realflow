@@ -1,6 +1,6 @@
 # Real-time collaboration
 
-ReFlow ships a transport-agnostic collaboration layer in `@realflow/core` — no
+RealFlow ships a transport-agnostic collaboration layer in `@realflow/core` — no
 mandatory dependency, no lock-in. `Collab` captures local graph changes as
 element-level patches and applies remote ones, converging via Lamport-clock
 last-write-wins. Wire it to **any** transport: WebSocket, `BroadcastChannel`,
@@ -76,7 +76,7 @@ observe(yEdges, 'edges');
 
 This exact pattern is exercised end-to-end in
 `packages/core/test/collab-yjs.test.ts` (two independent `Y.Doc`s syncing a
-ReFlow store).
+RealFlow store).
 
 ## Presence (cursors, selection, identity)
 
@@ -92,7 +92,7 @@ const presence = new Presence({
 });
 
 // Broadcast your cursor as it moves (in flow coordinates):
-const flow = useReflow();
+const flow = useRealFlow();
 onPointerMove = (e) => presence.update({ cursor: flow.screenToFlow({ x: e.clientX, y: e.clientY }) });
 // And your selection (PeerState.selection is a string[] of node ids):
 useOnSelectionChange(({ nodes }) => presence.update({ selection: nodes.map((n) => n.id) }));
@@ -102,9 +102,9 @@ Render remote peers with the `RemoteCursors` helper from `@realflow/react`:
 
 ```tsx
 import { RemoteCursors } from '@realflow/react';
-<ReFlow …>
+<RealFlow …>
   <RemoteCursors peers={remotePeers} />
-</ReFlow>
+</RealFlow>
 ```
 
 Stale peers (no update within `timeout`, default 15 s) are pruned

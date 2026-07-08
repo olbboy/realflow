@@ -1,12 +1,12 @@
 # Auto-layout: built-in, incremental, and off-thread
 
-ReFlow's five layouts (`layered`, `tree`, `force`, `radial`, `grid`) are pure,
+RealFlow's five layouts (`layered`, `tree`, `force`, `radial`, `grid`) are pure,
 dependency-free functions — no dagre, no elkjs. Three ways to run them.
 
 ## 1. Full layout (synchronous)
 
 ```ts
-const flow = useReflow();
+const flow = useRealFlow();
 flow.layout('layered', { direction: 'LR' }); // one undoable transaction, fits the view
 ```
 

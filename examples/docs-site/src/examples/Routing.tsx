@@ -1,4 +1,4 @@
-import { ReFlow, Background, Panel } from '@realflow/react';
+import { RealFlow, Background, Panel } from '@realflow/react';
 
 // Orthogonal edges route AROUND obstacle nodes — drag the middle nodes.
 const nodes = [
@@ -13,9 +13,9 @@ const edges = [
 
 export function Routing() {
   return (
-    <ReFlow defaultNodes={nodes} defaultEdges={edges}>
+    <RealFlow defaultNodes={nodes} defaultEdges={edges}>
       <Background />
       <Panel position="bottom-center">drag an obstacle — the edge re-routes live</Panel>
-    </ReFlow>
+    </RealFlow>
   );
 }

@@ -1,7 +1,7 @@
 import { type Page } from '@playwright/test';
 
 /**
- * Wait until the ReFlow viewport transform stops changing. ReFlow writes the
+ * Wait until the RealFlow viewport transform stops changing. RealFlow writes the
  * pan/zoom transform straight to the DOM and animates `fitView` on scene entry;
  * on slower engines (Playwright's Linux WebKit especially) that animation is
  * still running when a test starts interacting, which shifts every node's

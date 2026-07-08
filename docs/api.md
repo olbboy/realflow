@@ -5,12 +5,12 @@
 ```
 @realflow/core            @realflow/react
 ┌─────────────────┐     ┌──────────────────────────┐
-│ FlowStore        │◄────│ <ReFlow> renderer         │
+│ FlowStore        │◄────│ <RealFlow> renderer         │
 │  · nodes/edges   │     │  · NodeView (per-node sub)│
 │  · spatial index │     │  · EdgeView (per-edge sub)│
 │  · history       │     │  · direct-DOM viewport    │
 │  · validation    │     │  · Handle / MiniMap / …   │
-│ layouts          │     │ hooks (useReflow, …)      │
+│ layouts          │     │ hooks (useRealFlow, …)      │
 │ algorithms       │     └──────────────────────────┘
 │ path math        │
 └─────────────────┘  zero dependencies · runs in Node
@@ -126,6 +126,6 @@ Full token list in [`packages/react/src/styles.css`](../packages/react/src/style
 ## SSR
 
 `@realflow/core` is DOM-free. `@realflow/react` guards all browser APIs, so
-`<ReFlow>` renders on the server without throwing; measurements and culling
+`<RealFlow>` renders on the server without throwing; measurements and culling
 kick in on mount. Server rendering is guarded in code but not yet covered by
 an automated SSR render test — see [CLAIMS.md](../CLAIMS.md).

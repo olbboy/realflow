@@ -1,15 +1,15 @@
 import { useContext, useEffect, useMemo, useRef } from 'react';
 import {
-  ReFlow,
-  ReFlowProvider,
+  RealFlow,
+  RealFlowProvider,
   FlowContext,
   useFlowStore,
   useNodeId,
   createApi,
   screenToFlow,
   flowToScreen,
-  type Node as ReflowNode,
-  type Edge as ReflowEdge,
+  type Node as RealFlowNode,
+  type Edge as RealFlowEdge,
 } from '@realflow/react';
 import type {
   NodeChange,
@@ -21,7 +21,7 @@ import type {
   RFNode,
 } from './types';
 
-const toReflowNode = (n: RFNode): ReflowNode => ({
+const toRealFlowNode = (n: RFNode): RealFlowNode => ({
   id: n.id,
   position: n.position,
   data: n.data ?? {},
@@ -41,7 +41,7 @@ const toReflowNode = (n: RFNode): ReflowNode => ({
   className: n.className,
 });
 
-const toReflowEdge = (e: RFEdge): ReflowEdge => ({
+const toRealFlowEdge = (e: RFEdge): RealFlowEdge => ({
   id: e.id,
   source: e.source,
   target: e.target,
@@ -60,29 +60,29 @@ const toReflowEdge = (e: RFEdge): ReflowEdge => ({
   className: e.className,
 });
 
-const fromReflowNode = (n: ReflowNode): RFNode => ({ ...n, data: n.data } as unknown as RFNode);
-const fromReflowEdge = (e: ReflowEdge): RFEdge => ({ ...e } as unknown as RFEdge);
+const fromRealFlowNode = (n: RealFlowNode): RFNode => ({ ...n, data: n.data } as unknown as RFNode);
+const fromRealFlowEdge = (e: RealFlowEdge): RFEdge => ({ ...e } as unknown as RFEdge);
 
 /** Wrap a React Flow node component so it receives RF-style NodeProps. */
 function wrapNodeType(RFComp: React.ComponentType<NodeProps<any>>): React.ComponentType<any> {
-  return function CompatNode(reflowProps: {
+  return function CompatNode(realflowProps: {
     id: string;
     data: any;
-    node: ReflowNode;
+    node: RealFlowNode;
     selected: boolean;
     dragging: boolean;
   }) {
     const store = useFlowStore();
-    const abs = store.absolutePosition(reflowProps.id);
-    const size = store.nodeSize(reflowProps.id);
+    const abs = store.absolutePosition(realflowProps.id);
+    const size = store.nodeSize(realflowProps.id);
     return (
       <RFComp
-        id={reflowProps.id}
-        data={reflowProps.data}
-        type={reflowProps.node.type}
-        selected={reflowProps.selected}
-        dragging={reflowProps.dragging}
-        isConnectable={reflowProps.node.connectable !== false}
+        id={realflowProps.id}
+        data={realflowProps.data}
+        type={realflowProps.node.type}
+        selected={realflowProps.selected}
+        dragging={realflowProps.dragging}
+        isConnectable={realflowProps.node.connectable !== false}
         positionAbsoluteX={abs.x}
         positionAbsoluteY={abs.y}
         width={size.width}
@@ -93,14 +93,14 @@ function wrapNodeType(RFComp: React.ComponentType<NodeProps<any>>): React.Compon
 }
 
 /** Diff two node arrays into React Flow change objects. */
-function diffNodes(prev: Map<string, ReflowNode>, next: ReflowNode[]): NodeChange[] {
+function diffNodes(prev: Map<string, RealFlowNode>, next: RealFlowNode[]): NodeChange[] {
   const changes: NodeChange[] = [];
   const nextIds = new Set<string>();
   for (const n of next) {
     nextIds.add(n.id);
     const p = prev.get(n.id);
     if (!p) {
-      changes.push({ type: 'add', item: fromReflowNode(n) });
+      changes.push({ type: 'add', item: fromRealFlowNode(n) });
       continue;
     }
     if (p.position.x !== n.position.x || p.position.y !== n.position.y) {
@@ -114,14 +114,14 @@ function diffNodes(prev: Map<string, ReflowNode>, next: ReflowNode[]): NodeChang
   return changes;
 }
 
-function diffEdges(prev: Map<string, ReflowEdge>, next: ReflowEdge[]): EdgeChange[] {
+function diffEdges(prev: Map<string, RealFlowEdge>, next: RealFlowEdge[]): EdgeChange[] {
   const changes: EdgeChange[] = [];
   const nextIds = new Set<string>();
   for (const e of next) {
     nextIds.add(e.id);
     const p = prev.get(e.id);
     if (!p) {
-      changes.push({ type: 'add', item: fromReflowEdge(e) });
+      changes.push({ type: 'add', item: fromRealFlowEdge(e) });
       continue;
     }
     if (!!p.selected !== !!e.selected) changes.push({ type: 'select', id: e.id, selected: !!e.selected });
@@ -131,7 +131,7 @@ function diffEdges(prev: Map<string, ReflowEdge>, next: ReflowEdge[]): EdgeChang
 }
 
 export function ReactFlowProvider({ children }: { children: React.ReactNode }) {
-  return <ReFlowProvider>{children}</ReFlowProvider>;
+  return <RealFlowProvider>{children}</RealFlowProvider>;
 }
 
 /**
@@ -174,12 +174,12 @@ export function ReactFlow(props: ReactFlowProps) {
     children,
   } = props;
 
-  const reflowNodes = useMemo(
-    () => (nodes ?? defaultNodes)?.map(toReflowNode),
+  const realflowNodes = useMemo(
+    () => (nodes ?? defaultNodes)?.map(toRealFlowNode),
     [nodes, defaultNodes]
   );
-  const reflowEdges = useMemo(
-    () => (edges ?? defaultEdges)?.map(toReflowEdge),
+  const realflowEdges = useMemo(
+    () => (edges ?? defaultEdges)?.map(toRealFlowEdge),
     [edges, defaultEdges]
   );
   const controlled = nodes != null;
@@ -195,11 +195,11 @@ export function ReactFlow(props: ReactFlowProps) {
   cbs.current = { onNodesChange, onEdgesChange, onConnect, onSelectionChange };
 
   return (
-    <ReFlow
-      defaultNodes={controlled ? undefined : reflowNodes}
-      defaultEdges={controlled ? undefined : reflowEdges}
-      nodes={controlled ? reflowNodes : undefined}
-      edges={controlled ? reflowEdges : undefined}
+    <RealFlow
+      defaultNodes={controlled ? undefined : realflowNodes}
+      defaultEdges={controlled ? undefined : realflowEdges}
+      nodes={controlled ? realflowNodes : undefined}
+      edges={controlled ? realflowEdges : undefined}
       nodeTypes={wrappedNodeTypes}
       fitViewOnInit={fitView}
       fitViewOptions={fitViewOptions}
@@ -223,8 +223,8 @@ export function ReactFlow(props: ReactFlowProps) {
         sourceHandle: edge.sourceHandle ?? null,
         targetHandle: edge.targetHandle ?? null,
       })}
-      onNodeClick={onNodeClick ? (e, n) => onNodeClick(e, fromReflowNode(n)) : undefined}
-      onEdgeClick={onEdgeClick ? (e, edge) => onEdgeClick(e, fromReflowEdge(edge)) : undefined}
+      onNodeClick={onNodeClick ? (e, n) => onNodeClick(e, fromRealFlowNode(n)) : undefined}
+      onEdgeClick={onEdgeClick ? (e, edge) => onEdgeClick(e, fromRealFlowEdge(edge)) : undefined}
       onPaneClick={onPaneClick ? (e) => onPaneClick(e) : undefined}
       onInit={(api) => {
         onInit?.(makeInstance(api));
@@ -236,7 +236,7 @@ export function ReactFlow(props: ReactFlowProps) {
         onSelectionChange={(s) => cbs.current.onSelectionChange?.(s)}
       />
       {children}
-    </ReFlow>
+    </RealFlow>
   );
 }
 
@@ -251,8 +251,8 @@ function ChangeBridge({
   onSelectionChange: (s: { nodes: RFNode[]; edges: RFEdge[] }) => void;
 }) {
   const store = useFlowStore();
-  const prevNodes = useRef(new Map<string, ReflowNode>());
-  const prevEdges = useRef(new Map<string, ReflowEdge>());
+  const prevNodes = useRef(new Map<string, RealFlowNode>());
+  const prevEdges = useRef(new Map<string, RealFlowEdge>());
   const cb = useRef({ onNodesChange, onEdgesChange, onSelectionChange });
   cb.current = { onNodesChange, onEdgesChange, onSelectionChange };
 
@@ -272,8 +272,8 @@ function ChangeBridge({
     });
     const unsubSel = store.subscribe('selection', () => {
       cb.current.onSelectionChange({
-        nodes: [...store.selectedNodes].map((id) => fromReflowNode(store.getNode(id)!)).filter(Boolean),
-        edges: [...store.selectedEdges].map((id) => fromReflowEdge(store.getEdge(id)!)).filter(Boolean),
+        nodes: [...store.selectedNodes].map((id) => fromRealFlowNode(store.getNode(id)!)).filter(Boolean),
+        edges: [...store.selectedEdges].map((id) => fromRealFlowEdge(store.getEdge(id)!)).filter(Boolean),
       });
     });
     return () => {
@@ -289,31 +289,31 @@ function makeInstance(api: ReturnType<typeof createApi>): ReactFlowInstance {
   return {
     getNode: (id) => {
       const n = store.getNode(id);
-      return n ? fromReflowNode(n) : undefined;
+      return n ? fromRealFlowNode(n) : undefined;
     },
-    getNodes: () => store.getNodes().map(fromReflowNode),
+    getNodes: () => store.getNodes().map(fromRealFlowNode),
     getEdge: (id) => {
       const e = store.getEdge(id);
-      return e ? fromReflowEdge(e) : undefined;
+      return e ? fromRealFlowEdge(e) : undefined;
     },
-    getEdges: () => store.getEdges().map(fromReflowEdge),
+    getEdges: () => store.getEdges().map(fromRealFlowEdge),
     setNodes: (payload) => {
-      const cur = store.getNodes().map(fromReflowNode);
+      const cur = store.getNodes().map(fromRealFlowNode);
       const next = typeof payload === 'function' ? payload(cur) : payload;
-      store.setGraph(next.map(toReflowNode), store.getEdges());
+      store.setGraph(next.map(toRealFlowNode), store.getEdges());
     },
     setEdges: (payload) => {
-      const cur = store.getEdges().map(fromReflowEdge);
+      const cur = store.getEdges().map(fromRealFlowEdge);
       const next = typeof payload === 'function' ? payload(cur) : payload;
-      store.setGraph(store.getNodes(), next.map(toReflowEdge));
+      store.setGraph(store.getNodes(), next.map(toRealFlowEdge));
     },
     addNodes: (payload) => {
       const arr = Array.isArray(payload) ? payload : [payload];
-      store.addNodes(arr.map(toReflowNode));
+      store.addNodes(arr.map(toRealFlowNode));
     },
     addEdges: (payload) => {
       const arr = Array.isArray(payload) ? payload : [payload];
-      store.addEdges(arr.map(toReflowEdge));
+      store.addEdges(arr.map(toRealFlowEdge));
     },
     deleteElements: ({ nodes: dn, edges: de }) => {
       store.transact('delete', () => {
@@ -340,8 +340,8 @@ function makeInstance(api: ReturnType<typeof createApi>): ReactFlowInstance {
     toObject: () => {
       const snap = store.toSnapshot();
       return {
-        nodes: snap.nodes.map(fromReflowNode),
-        edges: snap.edges.map(fromReflowEdge),
+        nodes: snap.nodes.map(fromRealFlowNode),
+        edges: snap.edges.map(fromRealFlowEdge),
         viewport: snap.viewport,
       };
     },
@@ -352,7 +352,7 @@ function makeInstance(api: ReturnType<typeof createApi>): ReactFlowInstance {
 export function useReactFlow(): ReactFlowInstance {
   const store = useContext(FlowContext);
   if (!store) {
-    throw new Error('[reflow/compat] useReactFlow must be used inside <ReactFlow> or <ReactFlowProvider>');
+    throw new Error('[realflow/compat] useReactFlow must be used inside <ReactFlow> or <ReactFlowProvider>');
   }
   return useMemo(() => makeInstance(createApi(store)), [store]);
 }

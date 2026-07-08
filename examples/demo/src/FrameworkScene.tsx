@@ -4,7 +4,7 @@ import {
   Controls,
   MiniMap,
   Panel,
-  ReFlow,
+  RealFlow,
   type Edge,
   type Node,
 } from '@realflow/react';
@@ -13,7 +13,7 @@ import { BaseUiServiceNode } from './nodes/BaseUiServiceNode';
 import './shadcn.css';
 
 /**
- * Gate B proof: real UI-framework components living inside ReFlow nodes.
+ * Gate B proof: real UI-framework components living inside RealFlow nodes.
  *  - `shadcn` nodes are built from shadcn/ui Card + Select + Popover, which
  *    are the real @radix-ui/react-select and @radix-ui/react-popover.
  *  - `baseui` nodes are built from real @base-ui-components/react Select +
@@ -46,7 +46,7 @@ export function FrameworkScene({ dark }: { dark: boolean }) {
   }, [dark]);
 
   return (
-    <ReFlow
+    <RealFlow
       defaultNodes={fwNodes}
       defaultEdges={fwEdges}
       nodeTypes={fwNodeTypes}
@@ -60,6 +60,6 @@ export function FrameworkScene({ dark }: { dark: boolean }) {
         real shadcn/ui (Radix) + Base UI Card · Select · Popover inside draggable nodes —
         portals, positioning and pointer handling all coexist with pan/zoom
       </Panel>
-    </ReFlow>
+    </RealFlow>
   );
 }

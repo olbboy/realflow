@@ -12,10 +12,10 @@ Legend: ✅ verified (code + test/measurement) · 🟡 partial · ❌ not yet
 | Claim | Status | Evidence |
 | --- | --- | --- |
 | Fine-grained per-node/edge subscriptions | ✅ | `core/store.ts` topic emitter; `store.test.ts` "fine-grained notifications" |
-| Direct-DOM pan/zoom (no React render per frame) | ✅ | `react/ReFlow.tsx` writes `style.transform`; benchmark pan cost doesn't scale with the React tree |
+| Direct-DOM pan/zoom (no React render per frame) | ✅ | `react/RealFlow.tsx` writes `style.transform`; benchmark pan cost doesn't scale with the React tree |
 | Spatial-hash viewport culling, on by default | ✅ | `core/spatial.ts` + `store.cull()`; `spatial.test.ts` (10k query <100 ms); benchmark keeps 143 DOM nodes of 10k while editing |
 | Faster than React Flow in realistic editing | ✅ | `benchmarks/BENCHMARKS.md`: 10k zoomed-in — **43 fps / 18 MB** vs React Flow **4 fps / 239 MB** (~13× less memory) |
-| Roughly tied when every node is on-screen | ✅ (honest) | Overview 10k is paint-bound for both (~4 fps under software rendering); ReFlow still uses ~half the memory |
+| Roughly tied when every node is on-screen | ✅ (honest) | Overview 10k is paint-bound for both (~4 fps under software rendering); RealFlow still uses ~half the memory |
 | Canvas MiniMap (no per-node React elements) | ✅ | `react/MiniMap.tsx` renders to `<canvas>` |
 | Batched handle measurement (one ResizeObserver) | ✅ | `react/measure.ts` shared RO + read-then-write pass |
 
@@ -29,9 +29,9 @@ Legend: ✅ verified (code + test/measurement) · 🟡 partial · ❌ not yet
 | Typed ports: `dataType`, `maxConnections`, cycle prevention | ✅ | `store.validateCandidate`; `store.test.ts` connection suite |
 | Graph algorithms (topo sort, cycle, components, shortest path) | ✅ | `core/algorithms.ts`; `algorithms.test.ts` |
 | Subflows / groups, re-parent on delete | ✅ | `core/store.ts`; `store.test.ts` "reparents children" |
-| Controlled *and* uncontrolled modes | ✅ | `react/ReFlow.tsx` diff-sync; `react.test.tsx` controlled-mode |
-| Box select, keyboard shortcuts, arrow-nudge | ✅ | `react/ReFlow.tsx`; `e2e/core-flow.spec.ts` |
-| Touch: tap-select, two-finger pinch, `panOnScroll` | ✅ | `react/ReFlow.tsx`; `e2e/core-flow.spec.ts` mobile-touch tap-select |
+| Controlled *and* uncontrolled modes | ✅ | `react/RealFlow.tsx` diff-sync; `react.test.tsx` controlled-mode |
+| Box select, keyboard shortcuts, arrow-nudge | ✅ | `react/RealFlow.tsx`; `e2e/core-flow.spec.ts` |
+| Touch: tap-select, two-finger pinch, `panOnScroll` | ✅ | `react/RealFlow.tsx`; `e2e/core-flow.spec.ts` mobile-touch tap-select |
 | Edge labels/markers · bezier/smoothstep/step/straight/orthogonal | ✅ | `core/paths.ts`, `core/routing.ts`, `react/EdgeRenderer.tsx`; `paths.test.ts` |
 | Copy/paste/duplicate (⌘C/V/D/X), id-remapped | ✅ | `core/store.ts`; `clipboard-reconnect.test.ts` |
 | NodeResizer · NodeToolbar · edge reconnection | ✅ | `react/*`; `a11y-features.test.tsx`, `clipboard-reconnect.test.ts` |
@@ -72,11 +72,11 @@ Legend: ✅ verified (code + test/measurement) · 🟡 partial · ❌ not yet
 - **SSR** — browser APIs are guarded, but there is no SSR render test yet.
 - **Shadow-DOM** node isolation is untested.
 - **Overview mode** (every node on-screen at once) is paint-bound for both
-  ReFlow and React Flow; a WebGL/canvas node renderer would be the real fix.
+  RealFlow and React Flow; a WebGL/canvas node renderer would be the real fix.
 - The **keyed** AI network call isn't in CI (it needs a secret); the pipeline
   around it is unit-tested and was verified live locally against Gemini.
 - Two showcase pointer interactions (keyboard-nudge, handle-connect) are gated
   off Playwright's *headless Linux* WebKit — they pass on macOS WebKit; it's an
-  engine quirk, not a ReFlow bug.
+  engine quirk, not a RealFlow bug.
 - The interactive docs site (`examples/docs-site`) builds but isn't deployed to
   a public URL from this repo.

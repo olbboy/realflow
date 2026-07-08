@@ -9,7 +9,7 @@ import type {
   Viewport,
   XY,
 } from '@realflow/core';
-import type { ReflowApi } from './hooks';
+import type { RealFlowApi } from './hooks';
 
 /** Props passed to custom node components. */
 export interface NodeProps<T = Record<string, unknown>> {
@@ -40,8 +40,8 @@ export interface EdgeProps<T = Record<string, unknown>> {
 export type NodeTypes = Record<string, ComponentType<NodeProps<any>>>;
 export type EdgeTypes = Record<string, ComponentType<EdgeProps<any>>>;
 
-export interface ReFlowProps {
-  /** Controlled nodes. Prefer `defaultNodes` + useReflow() for simple apps. */
+export interface RealFlowProps {
+  /** Controlled nodes. Prefer `defaultNodes` + useRealFlow() for simple apps. */
   nodes?: Node[];
   edges?: Edge[];
   /** Uncontrolled initial graph. */
@@ -60,7 +60,7 @@ export interface ReFlowProps {
   onPaneClick?: (event: ReactMouseEvent, flowPosition: XY) => void;
   onPaneContextMenu?: (event: ReactMouseEvent, flowPosition: XY) => void;
   /** Called once with the imperative API (nice for refs-free setups). */
-  onInit?: (api: ReflowApi) => void;
+  onInit?: (api: RealFlowApi) => void;
 
   nodeTypes?: NodeTypes;
   edgeTypes?: EdgeTypes;
@@ -110,9 +110,9 @@ export interface FlowConfig {
   nodeTypes: NodeTypes;
   edgeTypes: EdgeTypes;
   readOnly: boolean;
-  onConnect?: ReFlowProps['onConnect'];
-  onNodeClick?: ReFlowProps['onNodeClick'];
-  onNodeDoubleClick?: ReFlowProps['onNodeDoubleClick'];
-  onNodeContextMenu?: ReFlowProps['onNodeContextMenu'];
-  onEdgeClick?: ReFlowProps['onEdgeClick'];
+  onConnect?: RealFlowProps['onConnect'];
+  onNodeClick?: RealFlowProps['onNodeClick'];
+  onNodeDoubleClick?: RealFlowProps['onNodeDoubleClick'];
+  onNodeContextMenu?: RealFlowProps['onNodeContextMenu'];
+  onEdgeClick?: RealFlowProps['onEdgeClick'];
 }

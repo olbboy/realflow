@@ -50,9 +50,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/olbboy/reflow.git",
+    "url": "git+https://github.com/olbboy/realflow.git",
     "directory": "packages/react"
   },
-  "homepage": "https://github.com/olbboy/reflow#readme",
-  "bugs": "https://github.com/olbboy/reflow/issues"
+  "homepage": "https://github.com/olbboy/realflow#readme",
+  "bugs": "https://github.com/olbboy/realflow/issues"
 }

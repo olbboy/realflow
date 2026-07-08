@@ -12,7 +12,7 @@ export interface Viewport {
   zoom: number;
 }
 
-/** React Flow node shape. Superset-compatible with ReFlow's Node. */
+/** React Flow node shape. Superset-compatible with RealFlow's Node. */
 export interface RFNode<T = any> {
   id: string;
   position: XYPosition;

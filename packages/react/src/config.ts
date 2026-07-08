@@ -6,7 +6,7 @@ export const ConfigContext = createContext<FlowConfig | null>(null);
 
 export const useConfig = (): FlowConfig => {
   const cfg = useContext(ConfigContext);
-  if (!cfg) throw new Error('[reflow] useConfig outside <ReFlow>');
+  if (!cfg) throw new Error('[realflow] useConfig outside <RealFlow>');
   return cfg;
 };
 
@@ -15,6 +15,6 @@ export const ContainerContext = createContext<RefObject<HTMLDivElement | null> |
 
 export const useContainer = (): RefObject<HTMLDivElement | null> => {
   const ref = useContext(ContainerContext);
-  if (!ref) throw new Error('[reflow] useContainer outside <ReFlow>');
+  if (!ref) throw new Error('[realflow] useContainer outside <RealFlow>');
   return ref;
 };

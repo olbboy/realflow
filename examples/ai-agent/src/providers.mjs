@@ -1,4 +1,4 @@
-// Provider-agnostic bridge from an LLM to ReFlow's JSON operation format.
+// Provider-agnostic bridge from an LLM to RealFlow's JSON operation format.
 //
 // The same prompt + parser work across GLM (z.ai, OpenAI-compatible), Gemini
 // (Google structured output) and Anthropic. Whichever API key is present in the
@@ -8,7 +8,7 @@ import { describeGraph, OPERATIONS_PROMPT } from '@realflow/core';
 
 /** Pick a provider from an explicit override or whichever key is set. */
 export function detectProvider(env = process.env) {
-  const explicit = env.REFLOW_AI_PROVIDER;
+  const explicit = env.REALFLOW_AI_PROVIDER;
   if (explicit) return explicit;
   if (env.GLM_API_KEY) return 'glm';
   if (env.GEMINI_API_KEY || env.GOOGLE_API_KEY) return 'gemini';

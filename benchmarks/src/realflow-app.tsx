@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-import { ReFlow, Background, type Node, type Edge } from '@realflow/react';
+import { RealFlow, Background, type Node, type Edge } from '@realflow/react';
 import '@realflow/react/styles.css';
 import { makeScene, sceneSizeFromUrl } from './scene';
 
@@ -17,7 +17,7 @@ const edges: Edge[] = scene.edges.map((e) => ({ id: e.id, source: e.source, targ
 
 createRoot(document.getElementById('root')!).render(
   <div style={{ width: '100vw', height: '100vh' }}>
-    <ReFlow
+    <RealFlow
       defaultNodes={nodes}
       defaultEdges={edges}
       minZoom={0.02}
@@ -36,6 +36,6 @@ createRoot(document.getElementById('root')!).render(
       }}
     >
       <Background />
-    </ReFlow>
+    </RealFlow>
   </div>
 );

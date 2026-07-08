@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Handle, useReflow, type NodeProps } from '@realflow/react';
+import { Handle, useRealFlow, type NodeProps } from '@realflow/react';
 import { MoreHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
@@ -8,20 +8,20 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 
 type ServiceData = { label?: string; env?: string; replicas?: number };
 
-// Keep pointer/mouse-down from reaching ReFlow's canvas so interacting with a
+// Keep pointer/mouse-down from reaching RealFlow's canvas so interacting with a
 // control neither drags the node nor pans the viewport. `rf-nodrag` is
-// ReFlow's opt-out class; stopPropagation covers the canvas pan listener.
+// RealFlow's opt-out class; stopPropagation covers the canvas pan listener.
 const stop = (e: React.PointerEvent | React.MouseEvent) => e.stopPropagation();
 
 /**
- * A ReFlow custom node built entirely from real shadcn/ui components
+ * A RealFlow custom node built entirely from real shadcn/ui components
  * (Card + Select + Popover), which are themselves the real
  * @radix-ui/react-select and @radix-ui/react-popover primitives. Proves that
- * Radix portals, positioning and pointer handling coexist with ReFlow's
+ * Radix portals, positioning and pointer handling coexist with RealFlow's
  * drag/pan/zoom without z-index or pointer-events conflicts.
  */
 export function ShadcnServiceNode({ id, data }: NodeProps) {
-  const flow = useReflow();
+  const flow = useRealFlow();
   const d = data as ServiceData;
   const [menuOpen, setMenuOpen] = useState(false);
 

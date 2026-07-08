@@ -4,14 +4,14 @@ import {
   Controls,
   MiniMap,
   Panel,
-  ReFlow,
+  RealFlow,
   type Edge,
   type Node,
 } from '@realflow/react';
 
 /**
  * Orthogonal edges route AROUND nodes — drag the obstacle nodes and watch
- * the edges re-route live. Neither React Flow nor stock ReFlow did this.
+ * the edges re-route live. Neither React Flow nor stock RealFlow did this.
  */
 
 const nodes: Node[] = [
@@ -32,7 +32,7 @@ const edges: Edge[] = [
 export function RoutingScene({ dark }: { dark: boolean }) {
   const [mode, setMode] = useState<'orthogonal' | 'bezier'>('orthogonal');
   return (
-    <ReFlow
+    <RealFlow
       key={mode}
       defaultNodes={nodes}
       defaultEdges={edges.map((e) => ({ ...e, type: mode }))}
@@ -54,6 +54,6 @@ export function RoutingScene({ dark }: { dark: boolean }) {
       <Panel position="bottom-center" className="demo-hint">
         drag the obstacle nodes — orthogonal edges re-route around them in real time
       </Panel>
-    </ReFlow>
+    </RealFlow>
   );
 }

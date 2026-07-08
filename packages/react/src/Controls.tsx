@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import type { ReactNode } from 'react';
-import { useHistory, useReflow } from './hooks';
+import { useHistory, useRealFlow } from './hooks';
 import { Panel, type PanelPosition } from './Panel';
 
 const Icon = ({ d }: { d: string }): React.JSX.Element => (
@@ -28,7 +28,7 @@ export const Controls = memo(function Controls({
   showFitView = true,
   children,
 }: ControlsProps) {
-  const api = useReflow();
+  const api = useRealFlow();
   const { canUndo, canRedo, undo, redo } = useHistory();
   return (
     <Panel position={position} className={`rf-controls${className ? ` ${className}` : ''}`}>

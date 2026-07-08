@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest';
 import { act, cleanup, render } from '@testing-library/react';
-import { ReFlow, type ReflowApi } from '@realflow/react';
+import { RealFlow, type RealFlowApi } from '@realflow/react';
 import type { Node, Edge } from '@realflow/core';
 
 afterEach(cleanup);
@@ -14,8 +14,8 @@ const edges: Edge[] = [{ id: 'e1', source: 'a', target: 'b' }];
 
 describe('layout API', () => {
   it('layoutAsync resolves and positions the graph', async () => {
-    let api: ReflowApi | null = null;
-    render(<ReFlow defaultNodes={nodes} defaultEdges={edges} fitViewOnInit={false} onInit={(a) => (api = a)} />);
+    let api: RealFlowApi | null = null;
+    render(<RealFlow defaultNodes={nodes} defaultEdges={edges} fitViewOnInit={false} onInit={(a) => (api = a)} />);
     await act(async () => {
       await api!.layoutAsync('layered', { fitView: false });
     });
@@ -24,8 +24,8 @@ describe('layout API', () => {
   });
 
   it('layoutIncremental places a new node without moving existing ones', () => {
-    let api: ReflowApi | null = null;
-    render(<ReFlow defaultNodes={nodes} defaultEdges={edges} fitViewOnInit={false} onInit={(a) => (api = a)} />);
+    let api: RealFlowApi | null = null;
+    render(<RealFlow defaultNodes={nodes} defaultEdges={edges} fitViewOnInit={false} onInit={(a) => (api = a)} />);
     const before = { a: { ...api!.getNode('a')!.position }, b: { ...api!.getNode('b')!.position } };
     act(() => {
       api!.addNode({ id: 'c', position: { x: 0, y: 0 }, data: { label: 'C' }, width: 120, height: 40 });

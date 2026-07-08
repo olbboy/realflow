@@ -24,7 +24,7 @@ function MetricNode({ id, data, selected }: NodeProps<MetricData>) {
   );
 }
 
-<ReFlow
+<RealFlow
   nodeTypes={{ metric: MetricNode }}
   defaultNodes={[{ id: 'm1', type: 'metric', position: { x: 0, y: 0 }, data: { label: 'CPU', value: 42 } }]}
 />;
@@ -42,10 +42,10 @@ Notes:
 - Interactive elements (`input`, `button`, links, `[contenteditable]`, or
   anything with the `rf-nodrag` class) don't start drags.
 - Inside a node component, `useNodeId()` returns the current node id and
-  `useReflow()` gives you the API — a node can edit itself:
+  `useRealFlow()` gives you the API — a node can edit itself:
 
 ```tsx
-const flow = useReflow();
+const flow = useRealFlow();
 const id = useNodeId();
 <input
   className="rf-nodrag"
@@ -101,7 +101,7 @@ function GlowEdge({ path, labelX, labelY, edge, selected }: EdgeProps) {
   );
 }
 
-<ReFlow edgeTypes={{ glow: GlowEdge }} … />;
+<RealFlow edgeTypes={{ glow: GlowEdge }} … />;
 ```
 
 Built-in path types: `bezier` (default), `smoothstep`, `step`, `straight`.
@@ -164,7 +164,7 @@ Beyond typed ports, plug in your own rule — return `true` or a reason
 string:
 
 ```tsx
-<ReFlow
+<RealFlow
   preventCycles
   validateConnection={(candidate, { sourceHandle, targetHandle }) => {
     if (candidate.source === 'root' && candidate.target === 'sink') return 'not directly';

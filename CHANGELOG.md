@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to ReFlow are documented here. This project follows
+All notable changes to RealFlow are documented here. This project follows
 [Semantic Versioning](https://semver.org). Until `1.0.0`, minor versions may
 contain breaking changes to APIs marked **experimental** in
 [API_STABILITY.md](./API_STABILITY.md); **stable** APIs will not break within
@@ -72,5 +72,5 @@ contain breaking changes to APIs marked **experimental** in
 
 - `@realflow/core`: headless engine — reactive store, spatial-hash culling, edge
   path math, five auto-layouts, undo/redo, graph algorithms, AI operations layer.
-- `@realflow/react`: renderer — `<ReFlow>`, `Handle`, `Background`, `MiniMap`
+- `@realflow/react`: renderer — `<RealFlow>`, `Handle`, `Background`, `MiniMap`
   (canvas), `Controls`, `Panel`, hooks, light/dark theme.

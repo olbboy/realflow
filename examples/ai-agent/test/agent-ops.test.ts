@@ -48,7 +48,7 @@ describe('extractOperations', () => {
 
 describe('detectProvider', () => {
   it('honours an explicit override', () => {
-    expect(detectProvider({ REFLOW_AI_PROVIDER: 'gemini', GLM_API_KEY: 'x' })).toBe('gemini');
+    expect(detectProvider({ REALFLOW_AI_PROVIDER: 'gemini', GLM_API_KEY: 'x' })).toBe('gemini');
   });
   it('falls back to whichever key is present', () => {
     expect(detectProvider({ GLM_API_KEY: 'x' })).toBe('glm');

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Handle, useReflow, type NodeProps } from '@realflow/react';
+import { Handle, useRealFlow, type NodeProps } from '@realflow/react';
 import { Select } from '@base-ui-components/react/select';
 import { Popover } from '@base-ui-components/react/popover';
 import { Check, ChevronDown, MoreHorizontal } from 'lucide-react';
@@ -15,13 +15,13 @@ const envItems = [
 ];
 
 /**
- * A ReFlow custom node built from real Base UI (@base-ui-components/react)
+ * A RealFlow custom node built from real Base UI (@base-ui-components/react)
  * Select + Popover primitives. Base UI is unstyled/headless, so every visual
  * comes from the host's own classes — exactly the "no imposed styles" contract
- * ReFlow promises. Portals + positioning coexist with drag/pan/zoom.
+ * RealFlow promises. Portals + positioning coexist with drag/pan/zoom.
  */
 export function BaseUiServiceNode({ id, data }: NodeProps) {
-  const flow = useReflow();
+  const flow = useRealFlow();
   const d = data as ServiceData;
   const [menuOpen, setMenuOpen] = useState(false);
 

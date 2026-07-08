@@ -62,7 +62,7 @@ const rafSchedule = (fn: () => void): void => {
 };
 
 /**
- * FlowStore is ReFlow's reactive heart: a Map-backed graph store with
+ * FlowStore is RealFlow's reactive heart: a Map-backed graph store with
  * fine-grained topic subscriptions.
  *
  * Every mutation notifies only the topics it touches (`node:<id>`,

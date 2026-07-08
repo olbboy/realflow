@@ -1,4 +1,4 @@
-# ReFlow
+# RealFlow
 
 > The fastest, most complete open-source library for building node-based UIs
 > with React. Headless core (`@realflow/core`, zero deps), React renderer
@@ -6,7 +6,7 @@
 > Culling on by default, built-in undo/redo + auto-layout, and a first-class
 > AI-agent operation layer.
 
-This file helps LLMs generate correct ReFlow code on the first try.
+This file helps LLMs generate correct RealFlow code on the first try.
 
 ## Install
 
@@ -17,7 +17,7 @@ npm install @realflow/react   # includes @realflow/core
 ## Minimal app
 
 ```tsx
-import { ReFlow, Background, Controls, MiniMap } from '@realflow/react';
+import { RealFlow, Background, Controls, MiniMap } from '@realflow/react';
 import '@realflow/react/styles.css';
 
 const nodes = [
@@ -28,25 +28,25 @@ const edges = [{ id: 'e1', source: 'a', target: 'b', animated: true }];
 
 export default () => (
   <div style={{ width: '100vw', height: '100vh' }}>
-    <ReFlow defaultNodes={nodes} defaultEdges={edges}>
+    <RealFlow defaultNodes={nodes} defaultEdges={edges}>
       <Background />
       <Controls />
       <MiniMap />
-    </ReFlow>
+    </RealFlow>
   </div>
 );
 ```
 
 Rules:
 - The container MUST have an explicit size.
-- Prefer `defaultNodes`/`defaultEdges` (uncontrolled) + `useReflow()` over
+- Prefer `defaultNodes`/`defaultEdges` (uncontrolled) + `useRealFlow()` over
   React Flow-style `onNodesChange` boilerplate.
 - Node `data` is arbitrary; `data.label` is shown by the default node.
 
-## Imperative API (useReflow)
+## Imperative API (useRealFlow)
 
 ```tsx
-const flow = useReflow(); // inside <ReFlow> or <ReFlowProvider>
+const flow = useRealFlow(); // inside <RealFlow> or <RealFlowProvider>
 flow.addNode({ id, position: { x, y }, data: { label } });
 flow.connect({ source, target });
 flow.updateNodeData(id, { label });
@@ -69,7 +69,7 @@ function MyNode({ data }: NodeProps<{ label: string }>) {
     </div>
   );
 }
-// <ReFlow nodeTypes={{ myType: MyNode }} ... />  and node.type = 'myType'
+// <RealFlow nodeTypes={{ myType: MyNode }} ... />  and node.type = 'myType'
 ```
 Handle props: `kind: 'source'|'target'`, `side: 'left'|'right'|'top'|'bottom'`,
 optional `id`, `dataType` (typed ports), `maxConnections`.

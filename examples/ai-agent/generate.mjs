@@ -1,4 +1,4 @@
-// Live AI → ReFlow demo. Reads a goal, asks whichever provider you have a key
+// Live AI → RealFlow demo. Reads a goal, asks whichever provider you have a key
 // for, applies the returned operations to a headless @realflow/core store, and
 // shows the graph before/after plus a single transactional undo.
 //

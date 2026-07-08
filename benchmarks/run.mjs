@@ -1,5 +1,5 @@
-// Head-to-head benchmark: ReFlow vs React Flow, production builds, identical
-// scenes, same machine. Reproducible with: npm run bench -w reflow-benchmarks
+// Head-to-head benchmark: RealFlow vs React Flow, production builds, identical
+// scenes, same machine. Reproducible with: npm run bench -w realflow-benchmarks
 //
 // Honest methodology notes:
 //  - Both apps are Vite *production* builds (minified, no dev tooling).
@@ -8,7 +8,7 @@
 //    lower than a real GPU desktop, but the RELATIVE comparison holds.
 //  - We report three React Flow configs: default (no culling) and
 //    onlyRenderVisibleElements (their opt-in culling), so nothing is
-//    cherry-picked. ReFlow culls by default.
+//    cherry-picked. RealFlow culls by default.
 import { chromium } from 'playwright';
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
@@ -52,7 +52,7 @@ const browser = await chromium.launch(launchOpts);
 
 /**
  * Drive a real pan for `ms` and count animation frames. Dispatches BOTH
- * pointer events (ReFlow) and mouse events (React Flow's d3-zoom listens on
+ * pointer events (RealFlow) and mouse events (React Flow's d3-zoom listens on
  * window for mousemove/mouseup) so both libraries genuinely pan. Returns the
  * viewport transform before/after so the caller can assert real movement —
  * a frozen canvas would otherwise report a meaningless 60fps.
@@ -97,8 +97,8 @@ const PAN_FN = ({ selector, ms, vpSelector }) =>
   });
 
 async function measure(page, url, nodeSelector, { edit = false } = {}) {
-  const isReflow = nodeSelector.includes('rf-node');
-  const vpSelector = isReflow ? '.rf-viewport' : '.react-flow__viewport';
+  const isRealFlow = nodeSelector.includes('rf-node');
+  const vpSelector = isRealFlow ? '.rf-viewport' : '.react-flow__viewport';
   await page.goto(url, { waitUntil: 'load' });
   // Wait until nodes are painted (or a short cap for culled/heavy mounts).
   await page.waitForSelector(nodeSelector, { timeout: 30000 }).catch(() => {});
@@ -125,7 +125,7 @@ async function measure(page, url, nodeSelector, { edit = false } = {}) {
 
   // Warm up one pan, then measure. Assert the viewport actually moved so a
   // frozen canvas can't report a bogus 60fps.
-  const paneSel = isReflow ? '.rf-container' : '.react-flow__pane';
+  const paneSel = isRealFlow ? '.rf-container' : '.react-flow__pane';
   await page.evaluate(PAN_FN, { selector: paneSel, ms: 400, vpSelector });
   const pan = await page.evaluate(PAN_FN, { selector: paneSel, ms: 2000, vpSelector });
 
@@ -141,7 +141,7 @@ async function measure(page, url, nodeSelector, { edit = false } = {}) {
 
 const SIZES = [1000, 5000, 10000];
 const CONFIGS = [
-  { key: 'ReFlow', url: (n) => `http://localhost:${PORT}/reflow.html?n=${n}`, sel: '.rf-node' },
+  { key: 'RealFlow', url: (n) => `http://localhost:${PORT}/realflow.html?n=${n}`, sel: '.rf-node' },
   { key: 'React Flow (default)', url: (n) => `http://localhost:${PORT}/xyflow.html?n=${n}`, sel: '.react-flow__node' },
   { key: 'React Flow (onlyRenderVisible)', url: (n) => `http://localhost:${PORT}/xyflow.html?n=${n}&cull=1`, sel: '.react-flow__node' },
 ];
@@ -182,9 +182,9 @@ const table = (title, note, data) => {
   return s + '\n';
 };
 
-let md = `# ReFlow vs React Flow — head-to-head benchmark\n\n`;
+let md = `# RealFlow vs React Flow — head-to-head benchmark\n\n`;
 md += `Chromium (Playwright, **software rendering** — no GPU) · 1440×900 · production builds · deterministic identical scenes.\n`;
-md += `Reproduce: \`npm run bench -w reflow-benchmarks\`.\n\n`;
+md += `Reproduce: \`npm run bench -w realflow-benchmarks\`.\n\n`;
 md += `> Absolute FPS is capped by software rendering (CI has no GPU); on real hardware\n`;
 md += `> both libraries are far smoother. The **relative** comparison is the signal.\n`;
 md += `> Every row's pan is verified to actually move the viewport (no frozen-canvas\n`;
@@ -196,7 +196,7 @@ md += table(
 );
 md += table(
   'Editing scenario — zoomed to 1:1 (a viewport-worth of nodes visible)',
-  'The realistic authoring case. ReFlow culls off-screen nodes by default; React Flow renders all unless `onlyRenderVisibleElements` is set.',
+  'The realistic authoring case. RealFlow culls off-screen nodes by default; React Flow renders all unless `onlyRenderVisibleElements` is set.',
   editRows
 );
 md += `Higher FPS is better; lower DOM nodes / mount ms / heap is better.\n`;

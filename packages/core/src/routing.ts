@@ -3,7 +3,7 @@ import { sideDir } from './geometry';
 
 /**
  * Orthogonal edge routing with obstacle avoidance — the feature neither
- * React Flow nor ReFlow shipped before. Edges route around nodes instead of
+ * React Flow nor RealFlow shipped before. Edges route around nodes instead of
  * cutting straight through them.
  *
  * The algorithm is an A* search over a **Hanan grid**: the lattice formed by

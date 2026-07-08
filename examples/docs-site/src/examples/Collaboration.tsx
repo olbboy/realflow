@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ReFlow, Background, Panel, RemoteCursors, FlowContext } from '@realflow/react';
+import { RealFlow, Background, Panel, RemoteCursors, FlowContext } from '@realflow/react';
 import { Collab, Presence, FlowStore, screenToFlow, type GraphPatch, type PeerState } from '@realflow/core';
 
 /**
@@ -59,13 +59,13 @@ function Canvas({ peerId, name, color }: { peerId: string; name: string; color: 
   return (
     <div style={{ position: 'relative', flex: 1, minWidth: 0 }} onPointerMove={onPointerMove}>
       <FlowContext.Provider value={store}>
-        <ReFlow fitViewOnInit={false}>
+        <RealFlow fitViewOnInit={false}>
           <Background />
           <RemoteCursors peers={remote} />
           <Panel position="top-left" style={{ color, fontWeight: 700 }}>
             {name}
           </Panel>
-        </ReFlow>
+        </RealFlow>
       </FlowContext.Provider>
     </div>
   );

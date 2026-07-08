@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, act } from '@testing-library/react';
-import { ReFlow, useReflow, type ReflowApi } from '@realflow/react';
+import { RealFlow, useRealFlow, type RealFlowApi } from '@realflow/react';
 import type { Edge, Node } from '@realflow/core';
 
 afterEach(cleanup);
@@ -12,11 +12,11 @@ const nodes: Node[] = [
 ];
 const edges: Edge[] = [{ id: 'e1', source: 'a', target: 'b' }];
 
-describe('<ReFlow>', () => {
+describe('<RealFlow>', () => {
   it('renders nodes and edges from defaultNodes/defaultEdges', () => {
     const { container } = render(
       <div style={{ width: 800, height: 600 }}>
-        <ReFlow defaultNodes={nodes} defaultEdges={edges} fitViewOnInit={false} />
+        <RealFlow defaultNodes={nodes} defaultEdges={edges} fitViewOnInit={false} />
       </div>
     );
     expect(container.querySelectorAll('.rf-node')).toHaveLength(2);
@@ -26,9 +26,9 @@ describe('<ReFlow>', () => {
   });
 
   it('exposes the imperative api via onInit: add/remove/undo', async () => {
-    let api: ReflowApi | null = null;
+    let api: RealFlowApi | null = null;
     const { container } = render(
-      <ReFlow
+      <RealFlow
         defaultNodes={nodes}
         defaultEdges={edges}
         fitViewOnInit={false}
@@ -53,10 +53,10 @@ describe('<ReFlow>', () => {
   });
 
   it('reflects selection in the DOM and fires onSelectionChange', async () => {
-    let api: ReflowApi | null = null;
+    let api: RealFlowApi | null = null;
     const onSelectionChange = vi.fn();
     const { container } = render(
-      <ReFlow
+      <RealFlow
         defaultNodes={nodes}
         fitViewOnInit={false}
         onInit={(a) => {
@@ -73,10 +73,10 @@ describe('<ReFlow>', () => {
   });
 
   it('controlled mode: onNodesChange fires after mutations commit', async () => {
-    let api: ReflowApi | null = null;
+    let api: RealFlowApi | null = null;
     const onNodesChange = vi.fn();
     render(
-      <ReFlow
+      <RealFlow
         nodes={nodes}
         edges={edges}
         fitViewOnInit={false}
@@ -99,7 +99,7 @@ describe('<ReFlow>', () => {
       <div className="custom-node">{data.label}</div>
     ));
     render(
-      <ReFlow
+      <RealFlow
         defaultNodes={[{ id: 'x', type: 'fancy', position: { x: 0, y: 0 }, data: { label: 'Fancy!' } }]}
         nodeTypes={{ fancy: Custom as never }}
         fitViewOnInit={false}
@@ -109,24 +109,24 @@ describe('<ReFlow>', () => {
     expect(Custom).toHaveBeenCalled();
   });
 
-  it('hooks work under ReFlow children (useReflow)', async () => {
+  it('hooks work under RealFlow children (useRealFlow)', async () => {
     let seen: number | null = null;
     const Probe = (): null => {
-      const api = useReflow();
+      const api = useRealFlow();
       seen = api.getNodes().length;
       return null;
     };
     render(
-      <ReFlow defaultNodes={nodes} fitViewOnInit={false}>
+      <RealFlow defaultNodes={nodes} fitViewOnInit={false}>
         <Probe />
-      </ReFlow>
+      </RealFlow>
     );
     expect(seen).toBe(2);
   });
 
   it('renders edge labels and markers', () => {
     const { container } = render(
-      <ReFlow
+      <RealFlow
         defaultNodes={nodes}
         defaultEdges={[
           {

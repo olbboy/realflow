@@ -1,6 +1,6 @@
 # AI Agent integration
 
-ReFlow ships a first-class agent layer: a JSON operation format an LLM can
+RealFlow ships a first-class agent layer: a JSON operation format an LLM can
 emit, a validated executor that applies it to a live canvas, and helpers
 that describe the graph back to the model. Everything runs through the same
 engine the UI uses — so agent edits are undoable, validated and animated
@@ -182,7 +182,7 @@ Each returns a JSON `{ "operations": [...] }`, which is parsed, validated by
 turn — so a single `undo()` reverts the whole agent edit. Override the model
 or endpoint per provider with env vars (`GLM_MODEL`, `GEMINI_MODEL`,
 `ANTHROPIC_MODEL`, `*_BASE_URL`), or force a provider with
-`REFLOW_AI_PROVIDER`.
+`REALFLOW_AI_PROVIDER`.
 
 The parse → validate → apply → undo pipeline is covered by
 `examples/ai-agent/test/agent-ops.test.ts` (canned responses for all three

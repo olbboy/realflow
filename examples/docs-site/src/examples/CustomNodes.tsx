@@ -1,8 +1,8 @@
-import { ReFlow, Background, Handle, useReflow, useNodeId, type NodeProps } from '@realflow/react';
+import { RealFlow, Background, Handle, useRealFlow, useNodeId, type NodeProps } from '@realflow/react';
 
 // A custom node that edits its own data — no reducers, no change handlers.
 function CounterNode({ data }: NodeProps) {
-  const flow = useReflow();
+  const flow = useRealFlow();
   const id = useNodeId();
   const count = (data as { count?: number }).count ?? 0;
   return (
@@ -27,8 +27,8 @@ const nodes = [
 
 export function CustomNodes() {
   return (
-    <ReFlow defaultNodes={nodes} defaultEdges={[{ id: 'e', source: 'a', target: 'b' }]} nodeTypes={nodeTypes}>
+    <RealFlow defaultNodes={nodes} defaultEdges={[{ id: 'e', source: 'a', target: 'b' }]} nodeTypes={nodeTypes}>
       <Background />
-    </ReFlow>
+    </RealFlow>
   );
 }

@@ -1,6 +1,6 @@
-# Using ReFlow with your UI stack
+# Using RealFlow with your UI stack
 
-ReFlow is design-system agnostic by construction:
+RealFlow is design-system agnostic by construction:
 
 - Custom nodes/edges are **plain React components** — anything renders.
 - All library styles live under prefixed classes (`rf-*`) and **CSS
@@ -28,12 +28,12 @@ function CardNode({ data, selected }: NodeProps) {
 }
 ```
 
-Tailwind's preflight does not affect ReFlow (all styles are class-scoped).
+Tailwind's preflight does not affect RealFlow (all styles are class-scoped).
 `touch-action`/`user-select` are handled by the library on the canvas only.
 
 ## shadcn/ui
 
-Map ReFlow's tokens to your shadcn theme once, and the canvas (selection
+Map RealFlow's tokens to your shadcn theme once, and the canvas (selection
 rings, handles, minimap, controls) follows your design system in both
 modes:
 
@@ -57,7 +57,7 @@ Use shadcn components inside nodes as-is — `DropdownMenu`, `Select`,
 
 ```tsx
 function TaskNode({ id, data }: NodeProps) {
-  const flow = useReflow();
+  const flow = useRealFlow();
   return (
     <Card className="w-64">
       <Handle kind="target" side="left" />
@@ -82,10 +82,10 @@ Match dark mode by driving `colorMode` from your theme provider:
 
 ```tsx
 const { theme } = useTheme(); // next-themes
-<ReFlow colorMode={theme === 'dark' ? 'dark' : 'light'} … />
+<RealFlow colorMode={theme === 'dark' ? 'dark' : 'light'} … />
 ```
 
-ReFlow also honors a page-level `data-theme="dark"` attribute on `:root`
+RealFlow also honors a page-level `data-theme="dark"` attribute on `:root`
 automatically.
 
 ## Base UI / Radix / MUI / Mantine
@@ -102,12 +102,12 @@ Same story — components in nodes, portals for overlays. Two tips:
 - **react-hook-form / TanStack Form** inside nodes: works; inputs are
   drag-exempt.
 - **zustand / redux / jotai** as the app store: use controlled mode
-  (`nodes`/`edges` props + `onNodesChange`) or keep graph state in ReFlow
+  (`nodes`/`edges` props + `onNodesChange`) or keep graph state in RealFlow
   and mirror only what you need from `onNodesChange` / `useNodes()`.
 
 ## Next.js / SSR
 
-`<ReFlow>` renders without throwing on the server — all browser APIs are
+`<RealFlow>` renders without throwing on the server — all browser APIs are
 guarded, and measurement and culling activate on mount (guarded in code, not
 yet covered by an automated SSR render test). In the App Router mark the flow
 component `'use client'`. `@realflow/core` runs natively in server code —

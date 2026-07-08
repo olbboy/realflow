@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { ReFlow, Background, Panel, useReflow, applyOperations, type FlowOperation } from '@realflow/react';
+import { RealFlow, Background, Panel, useRealFlow, applyOperations, type FlowOperation } from '@realflow/react';
 
 // Build a graph the way an AI agent would: a stream of JSON operations.
 const script: FlowOperation[] = [
@@ -16,7 +16,7 @@ const script: FlowOperation[] = [
 ];
 
 function Runner() {
-  const flow = useReflow();
+  const flow = useRealFlow();
   const running = useRef(false);
   const run = async () => {
     if (running.current) return;
@@ -37,10 +37,10 @@ function Runner() {
 
 export function AgentOps() {
   return (
-    <ReFlow defaultNodes={[]} defaultEdges={[]} fitViewOnInit={false}>
+    <RealFlow defaultNodes={[]} defaultEdges={[]} fitViewOnInit={false}>
       <Background />
       <Runner />
       <Panel position="bottom-center">applyOperations(store, ops) — validated, undoable, streamed</Panel>
-    </ReFlow>
+    </RealFlow>
   );
 }

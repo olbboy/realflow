@@ -12,7 +12,7 @@ covers most apps.
 ## Your first flow
 
 ```tsx
-import { ReFlow, Background, Controls, MiniMap } from '@realflow/react';
+import { RealFlow, Background, Controls, MiniMap } from '@realflow/react';
 import '@realflow/react/styles.css';
 
 const nodes = [
@@ -29,28 +29,28 @@ const edges = [
 export default function App() {
   return (
     <div style={{ width: '100%', height: '100vh' }}>
-      <ReFlow defaultNodes={nodes} defaultEdges={edges}>
+      <RealFlow defaultNodes={nodes} defaultEdges={edges}>
         <Background variant="dots" />
         <Controls />
         <MiniMap />
-      </ReFlow>
+      </RealFlow>
     </div>
   );
 }
 ```
 
-The container must have a size — ReFlow fills whatever box you give it.
+The container must have a size — RealFlow fills whatever box you give it.
 
 ## Two ways to manage state
 
 ### Uncontrolled (recommended)
 
-Pass `defaultNodes` / `defaultEdges` and mutate through the API. ReFlow owns
+Pass `defaultNodes` / `defaultEdges` and mutate through the API. RealFlow owns
 the state; you get undo/redo, transactions and fine-grained rendering for
 free:
 
 ```tsx
-const flow = useReflow(); // inside <ReFlow>, or under <ReFlowProvider>
+const flow = useRealFlow(); // inside <RealFlow>, or under <RealFlowProvider>
 
 flow.addNode({ id: 'x', position: { x: 100, y: 100 }, data: { label: 'New' } });
 flow.updateNodeData('x', { label: 'Renamed' });
@@ -62,7 +62,7 @@ flow.undo();
 Subscribe to committed changes when you need to persist:
 
 ```tsx
-<ReFlow defaultNodes={nodes} onNodesChange={saveNodes} onEdgesChange={saveEdges} />
+<RealFlow defaultNodes={nodes} onNodesChange={saveNodes} onEdgesChange={saveEdges} />
 ```
 
 `onNodesChange` fires at meaningful boundaries (drag end, add/remove, undo…)
@@ -70,20 +70,20 @@ Subscribe to committed changes when you need to persist:
 
 ### Controlled
 
-Pass `nodes` / `edges` props; ReFlow diff-syncs them into its store
+Pass `nodes` / `edges` props; RealFlow diff-syncs them into its store
 (selection and measurements survive). Combine with `onNodesChange` to close
 the loop:
 
 ```tsx
 const [nodes, setNodes] = useState(initial);
-<ReFlow nodes={nodes} onNodesChange={setNodes} … />
+<RealFlow nodes={nodes} onNodesChange={setNodes} … />
 ```
 
 ## Hooks
 
 | Hook | Returns |
 | --- | --- |
-| `useReflow()` | the imperative API (`addNode`, `layout`, `fitView`, `undo`, …) |
+| `useRealFlow()` | the imperative API (`addNode`, `layout`, `fitView`, `undo`, …) |
 | `useNodes()` / `useEdges()` | all nodes/edges, updated on commits |
 | `useNode(id)` / `useEdge(id)` | one element, fine-grained |
 | `useSelection()` | `{ nodes: string[], edges: string[] }` |
@@ -92,19 +92,19 @@ const [nodes, setNodes] = useState(initial);
 | `useConnection()` | in-progress connection state or `null` |
 
 To use hooks outside the canvas (toolbars, sidebars), wrap both in
-`<ReFlowProvider>`:
+`<RealFlowProvider>`:
 
 ```tsx
-<ReFlowProvider>
+<RealFlowProvider>
   <Toolbar />
-  <ReFlow … />
-</ReFlowProvider>
+  <RealFlow … />
+</RealFlowProvider>
 ```
 
 ## Common options
 
 ```tsx
-<ReFlow
+<RealFlow
   minZoom={0.1} maxZoom={2.5}
   snapGrid={16}                 // snap dragging to a 16px grid
   alignmentGuides               // Figma-style guides (default on)

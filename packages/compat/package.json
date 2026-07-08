@@ -1,7 +1,7 @@
 {
   "name": "@realflow/compat",
   "version": "0.1.0",
-  "description": "Drop-in React Flow (xyflow) API compatibility layer for ReFlow. Migrate an existing React Flow app by changing one import.",
+  "description": "Drop-in React Flow (xyflow) API compatibility layer for RealFlow. Migrate an existing React Flow app by changing one import.",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -42,7 +42,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/olbboy/reflow.git",
+    "url": "git+https://github.com/olbboy/realflow.git",
     "directory": "packages/compat"
   }
 }

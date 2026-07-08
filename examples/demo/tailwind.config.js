@@ -3,7 +3,7 @@ export default {
   // Class-based dark mode so portaled popovers (rendered on <body>) inherit it.
   darkMode: 'class',
   content: ['./index.html', './src/**/*.{ts,tsx}'],
-  // Preflight OFF: this app already ships hand-written CSS + ReFlow's own
+  // Preflight OFF: this app already ships hand-written CSS + RealFlow's own
   // styles; we only want Tailwind's utilities for the shadcn nodes, not a
   // global reset that would fight them.
   corePlugins: { preflight: false },

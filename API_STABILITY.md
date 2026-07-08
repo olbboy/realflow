@@ -1,6 +1,6 @@
 # API stability
 
-ReFlow is pre-1.0. This document is the contract for what may change.
+RealFlow is pre-1.0. This document is the contract for what may change.
 
 - **Stable** — will not break within `0.x` without a deprecation path and a
   CHANGELOG migration note. Safe to build on.
@@ -34,9 +34,9 @@ ReFlow is pre-1.0. This document is the contract for what may change.
 
 | API | Status |
 | --- | --- |
-| `<ReFlow>` + documented props | Stable |
+| `<RealFlow>` + documented props | Stable |
 | `Handle`, `Background`, `Controls`, `Panel`, `MiniMap` | Stable |
-| `useReflow`, `useNodes`, `useEdges`, `useNode`, `useEdge` | Stable |
+| `useRealFlow`, `useNodes`, `useEdges`, `useNode`, `useEdge` | Stable |
 | `useViewport`, `useSelection`, `useHistory`, `useConnection` | Stable |
 | `NodeProps`/`EdgeProps` for custom nodes/edges | Stable |
 | `NodeToolbar`, `NodeResizer` | Experimental (styling hooks may change) |

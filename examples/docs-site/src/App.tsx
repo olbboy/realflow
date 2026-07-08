@@ -23,7 +23,7 @@ interface Example {
 
 const EXAMPLES: Example[] = [
   { id: 'basic', title: 'Basic flow', blurb: 'Nodes, edges, background, controls and a minimap — the whole app in ~20 lines.', Comp: Basic, src: basicSrc },
-  { id: 'custom', title: 'Custom nodes', blurb: 'A node that edits its own data with useReflow(). No reducers, no change handlers.', Comp: CustomNodes, src: customSrc },
+  { id: 'custom', title: 'Custom nodes', blurb: 'A node that edits its own data with useRealFlow(). No reducers, no change handlers.', Comp: CustomNodes, src: customSrc },
   { id: 'layout', title: 'Auto-layout', blurb: 'Five built-in layouts (layered / tree / force / radial / grid), zero dependencies.', Comp: AutoLayout, src: layoutSrc },
   { id: 'routing', title: 'Smart routing', blurb: 'Orthogonal edges route AROUND nodes and re-route live as you drag obstacles.', Comp: Routing, src: routingSrc },
   { id: 'agent', title: 'AI agent ops', blurb: 'Build a graph from a stream of validated JSON operations — the AI-native API.', Comp: AgentOps, src: agentSrc },
@@ -43,7 +43,7 @@ export function App() {
     <div className={`site${dark ? ' site-dark' : ''}`} data-theme={dark ? 'dark' : 'light'}>
       <aside className="site-nav">
         <div className="site-brand">
-          <span className="site-logo">◆</span> ReFlow
+          <span className="site-logo">◆</span> RealFlow
         </div>
         <div className="site-nav-sub">interactive examples</div>
         <nav>
@@ -55,7 +55,7 @@ export function App() {
         </nav>
         <div className="site-nav-foot">
           <button onClick={() => setDark((d) => !d)}>{dark ? '☀️ light' : '🌙 dark'}</button>
-          <a href="https://github.com/olbboy/reflow" target="_blank" rel="noreferrer">GitHub ↗</a>
+          <a href="https://github.com/olbboy/realflow" target="_blank" rel="noreferrer">GitHub ↗</a>
         </div>
       </aside>
       <main className="site-main">

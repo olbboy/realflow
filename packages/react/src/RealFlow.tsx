@@ -20,7 +20,7 @@ import { MeasureContext, createMeasurer } from './measure';
 import { createApi } from './hooks';
 import { NodesLayer, builtinNodeTypes } from './NodeRenderer';
 import { EdgesLayer } from './EdgeRenderer';
-import type { FlowConfig, ReFlowProps } from './types';
+import type { FlowConfig, RealFlowProps } from './types';
 
 interface PaneSession {
   pointerId: number;
@@ -36,16 +36,16 @@ interface PaneSession {
 const INPUT_SELECTOR = 'input, textarea, select, [contenteditable="true"]';
 
 /**
- * Standalone provider for using ReFlow hooks outside the <ReFlow> canvas
+ * Standalone provider for using RealFlow hooks outside the <RealFlow> canvas
  * (toolbars, sidebars, inspectors).
  */
-export const ReFlowProvider = ({ children }: { children: ReactNode }): React.JSX.Element => {
+export const RealFlowProvider = ({ children }: { children: ReactNode }): React.JSX.Element => {
   const [store] = useState(() => new FlowStore());
   return <FlowContext.Provider value={store}>{children}</FlowContext.Provider>;
 };
 
-/** The ReFlow canvas. */
-export const ReFlow = memo(function ReFlow(props: ReFlowProps) {
+/** The RealFlow canvas. */
+export const RealFlow = memo(function RealFlow(props: RealFlowProps) {
   const {
     nodes,
     edges,

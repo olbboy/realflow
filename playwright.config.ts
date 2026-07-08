@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// Cross-browser + touch E2E matrix for ReFlow. Drives the production build of
+// Cross-browser + touch E2E matrix for RealFlow. Drives the production build of
 // the demo app (examples/demo) through a real browser on Chromium, Firefox,
 // WebKit, and a mobile (touch) profile. One command: `npm run test:e2e`.
 const PORT = Number(process.env.E2E_PORT ?? 4318);
@@ -36,7 +36,7 @@ export default defineConfig({
     { name: 'visual', testMatch: '**/visual.spec.ts', use: { ...devices['Desktop Chrome'] } },
   ],
   webServer: {
-    command: `npm run preview -w reflow-demo -- --port ${PORT} --strictPort`,
+    command: `npm run preview -w realflow-demo -- --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

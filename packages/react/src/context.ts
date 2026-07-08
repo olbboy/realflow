@@ -3,12 +3,12 @@ import type { FlowStore } from '@realflow/core';
 
 export const FlowContext = createContext<FlowStore | null>(null);
 
-/** The FlowStore powering the nearest <ReFlow>. */
+/** The FlowStore powering the nearest <RealFlow>. */
 export const useFlowStore = (): FlowStore => {
   const store = useContext(FlowContext);
   if (!store) {
     throw new Error(
-      '[reflow] No FlowStore found. Wrap this component in <ReFlow> (hooks must be used inside it).'
+      '[realflow] No FlowStore found. Wrap this component in <RealFlow> (hooks must be used inside it).'
     );
   }
   return store;

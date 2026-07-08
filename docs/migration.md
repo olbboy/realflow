@@ -1,6 +1,6 @@
 # Migrating from React Flow (xyflow)
 
-`@realflow/compat` lets an existing React Flow app run on ReFlow's engine with
+`@realflow/compat` lets an existing React Flow app run on RealFlow's engine with
 minimal changes — often just the imports.
 
 ## The one-line migration
@@ -31,12 +31,12 @@ continue to work unchanged.
 | `useNodesState` / `useEdgesState` | ✅ |
 | `applyNodeChanges` / `applyEdgeChanges` | ✅ |
 | `addEdge` / `reconnectEdge` | ✅ |
-| `<Background variant gap>` / `<Controls>` / `<MiniMap>` / `<Panel>` | ✅ (native ReFlow) |
+| `<Background variant gap>` / `<Controls>` / `<MiniMap>` / `<Panel>` | ✅ (native RealFlow) |
 | `<ReactFlowProvider>` | ✅ |
 | `onNodeClick`, `onEdgeClick`, `onPaneClick`, `onInit`, `onSelectionChange` | ✅ |
 | `fitView`, `minZoom`, `maxZoom`, `snapToGrid`, `snapGrid`, `panOnDrag`, `panOnScroll`, `zoomOnScroll`, `colorMode` | ✅ |
 
-## Bonus: you get ReFlow features for free
+## Bonus: you get RealFlow features for free
 
 After migrating, these work without extra code:
 
@@ -44,18 +44,18 @@ After migrating, these work without extra code:
 - **Culling on by default** — no `onlyRenderVisibleElements` flag needed.
 - **Copy/paste/duplicate** — ⌘C/⌘V/⌘D/⌘X.
 - **Alignment guides** — drag a node near another's edge.
-- **Built-in auto-layout** — `useReflow()` from `@realflow/react` exposes
+- **Built-in auto-layout** — `useRealFlow()` from `@realflow/react` exposes
   `.layout('layered')` etc. (no dagre/elk dependency).
 
 ## Known gaps (be honest)
 
 Not yet mapped in compat (use the native `@realflow/react` API, or contribute):
 
-- `onlyRenderVisibleElements` prop — ReFlow always culls; the prop is a no-op.
+- `onlyRenderVisibleElements` prop — RealFlow always culls; the prop is a no-op.
 - `<NodeResizer>` / `<NodeToolbar>` from `@xyflow/react` — use the
   `@realflow/react` equivalents (same idea, slightly different props).
-- `useStore` (Zustand selector into React Flow's internal store) — ReFlow's
-  store is different; use `useReflow()` / `useFlowSelector()`.
+- `useStore` (Zustand selector into React Flow's internal store) — RealFlow's
+  store is different; use `useRealFlow()` / `useFlowSelector()`.
 - Some fine-grained props (`connectionRadius`, `elevateNodesOnSelect`,
   `nodeExtent`, edge `pathOptions`) — partial or unmapped.
 
@@ -65,11 +65,11 @@ does not itself emit changes.
 
 ## If you're starting fresh
 
-Prefer `@realflow/react` directly — `useReflow()` removes the
+Prefer `@realflow/react` directly — `useRealFlow()` removes the
 `onNodesChange`/`applyNodeChanges` boilerplate entirely:
 
 ```tsx
-const flow = useReflow();
+const flow = useRealFlow();
 flow.addNode({ id: 'x', position: { x: 0, y: 0 }, data: { label: 'New' } });
 flow.undo();
 ```

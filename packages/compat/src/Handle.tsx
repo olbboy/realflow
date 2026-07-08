@@ -1,11 +1,11 @@
-import { Handle as ReflowHandle } from '@realflow/react';
+import { Handle as RealFlowHandle } from '@realflow/react';
 import type { CSSProperties, ReactNode } from 'react';
 import type { Position } from './enums';
 
 export interface HandleProps {
-  /** React Flow uses `type`; ReFlow uses `kind`. */
+  /** React Flow uses `type`; RealFlow uses `kind`. */
   type: 'source' | 'target';
-  /** React Flow uses `position`; ReFlow uses `side`. */
+  /** React Flow uses `position`; RealFlow uses `side`. */
   position: Position;
   id?: string;
   isConnectable?: boolean;
@@ -30,7 +30,7 @@ export function Handle({
   children,
 }: HandleProps) {
   return (
-    <ReflowHandle
+    <RealFlowHandle
       kind={type}
       side={position}
       id={id}
@@ -39,6 +39,6 @@ export function Handle({
       style={style}
     >
       {children}
-    </ReflowHandle>
+    </RealFlowHandle>
   );
 }

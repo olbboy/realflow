@@ -10,7 +10,7 @@
  *
  * The adapter maps React Flow's controlled `onNodesChange(changes)` model,
  * `<Handle type position>`, `useReactFlow()`, `applyNodeChanges`,
- * `useNodesState`, `addEdge`, etc. onto ReFlow's engine. Coverage targets the
+ * `useNodesState`, `addEdge`, etc. onto RealFlow's engine. Coverage targets the
  * common migration surface — see docs/migration.md for the exact map and the
  * few APIs that need manual attention.
  */
@@ -47,9 +47,9 @@ export { useNodesState, useEdgesState } from './useNodesState';
 export { Handle } from './Handle';
 export { ReactFlow, ReactFlowProvider, useReactFlow } from './ReactFlow';
 
-// These ReFlow components are already API-compatible with React Flow's.
+// These RealFlow components are already API-compatible with React Flow's.
 export { Background, MiniMap, Controls, Panel } from '@realflow/react';
-// React Flow also ships these; the ReFlow versions have equivalent behavior.
+// React Flow also ships these; the RealFlow versions have equivalent behavior.
 export { NodeResizer, NodeToolbar } from '@realflow/react';
 // React Flow-compatible selection hook.
 export { useOnSelectionChange } from '@realflow/react';

@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { waitForViewportStable } from './helpers';
 
 // Gate B proof, at runtime: real shadcn/ui (Radix) and Base UI components live
-// inside ReFlow nodes. Portals open above the canvas, interacting with them
+// inside RealFlow nodes. Portals open above the canvas, interacting with them
 // never pans the viewport, and the node stays draggable. Desktop matrix only —
 // these are pointer-driven library interactions.
 

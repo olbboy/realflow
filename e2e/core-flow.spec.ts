@@ -3,7 +3,7 @@ import { waitForViewportStable } from './helpers';
 
 // On Playwright's headless Linux WebKit, synthetic keyboard events don't reach
 // the canvas (it won't focus a tabindex div) and handle-drag connections don't
-// complete — deterministic engine quirks, NOT ReFlow bugs: the same tests pass
+// complete — deterministic engine quirks, NOT RealFlow bugs: the same tests pass
 // on macOS WebKit locally. So the keyboard-nudge and connect tests run on
 // Chromium + Firefox. WebKit still exercises rendering, culling, touch-tap,
 // mouse node-drag, and every framework-component interaction, so it keeps broad
@@ -51,7 +51,7 @@ async function dragBy(page: Page, selector: string, dx: number, dy: number) {
   return box;
 }
 
-test.describe('ReFlow core interactions', () => {
+test.describe('RealFlow core interactions', () => {
   test('renders the showcase graph', async ({ page }) => {
     await gotoShowcase(page);
     // Seven showcase nodes + their edges should be in the DOM.
@@ -69,7 +69,7 @@ test.describe('ReFlow core interactions', () => {
     await gotoShowcase(page);
     const node = page.locator(nodeSel('notify'));
     const before = await node.boundingBox();
-    await node.click(); // ReFlow selects the node on pointer-down
+    await node.click(); // RealFlow selects the node on pointer-down
     await expect(node).toHaveClass(/rf-selected/);
     // WebKit doesn't focus a tabindex div on click, so focus it explicitly;
     // then Shift+Arrow nudges the selection 10 units per press (one undo each).

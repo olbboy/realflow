@@ -1,4 +1,4 @@
-export { ReFlow, ReFlowProvider } from './ReFlow';
+export { RealFlow, RealFlowProvider } from './RealFlow';
 export { Handle, type HandleProps } from './Handle';
 export { Background, type BackgroundProps } from './Background';
 export { MiniMap, type MiniMapProps } from './MiniMap';
@@ -12,7 +12,7 @@ export { NodeView, NodesLayer } from './NodeRenderer';
 export { EdgeView, EdgesLayer } from './EdgeRenderer';
 export { FlowContext, useFlowStore, useNodeId } from './context';
 export {
-  useReflow,
+  useRealFlow,
   useNode,
   useEdge,
   useNodes,
@@ -25,14 +25,14 @@ export {
   useSelectionCount,
   useFlowSelector,
   createApi,
-  type ReflowApi,
+  type RealFlowApi,
 } from './hooks';
 export type {
   NodeProps,
   EdgeProps,
   NodeTypes,
   EdgeTypes,
-  ReFlowProps,
+  RealFlowProps,
 } from './types';
 
 // Re-export the core surface so one import serves most apps.

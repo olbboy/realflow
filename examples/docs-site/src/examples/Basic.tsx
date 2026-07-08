@@ -1,4 +1,4 @@
-import { ReFlow, Background, Controls, MiniMap } from '@realflow/react';
+import { RealFlow, Background, Controls, MiniMap } from '@realflow/react';
 
 const nodes = [
   { id: '1', position: { x: 40, y: 40 }, data: { label: 'Extract' }, type: 'input' },
@@ -12,10 +12,10 @@ const edges = [
 
 export function Basic() {
   return (
-    <ReFlow defaultNodes={nodes} defaultEdges={edges}>
+    <RealFlow defaultNodes={nodes} defaultEdges={edges}>
       <Background />
       <Controls />
       <MiniMap />
-    </ReFlow>
+    </RealFlow>
   );
 }

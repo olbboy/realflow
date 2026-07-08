@@ -4,7 +4,7 @@ import type { FlowStore } from './store';
 /**
  * Transport-agnostic real-time collaboration.
  *
- * ReFlow's core stays zero-dependency: `Collab` captures local graph changes
+ * RealFlow's core stays zero-dependency: `Collab` captures local graph changes
  * as element-level patches and applies remote ones, converging via
  * last-write-wins per element. Wire it to ANY transport — a WebSocket,
  * BroadcastChannel, WebRTC, or a Yjs `Y.Map` (see docs/collaboration.md).

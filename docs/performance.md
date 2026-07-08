@@ -1,10 +1,10 @@
 # Performance guide
 
-ReFlow is architected so interaction cost scales with what's **on screen**,
+RealFlow is architected so interaction cost scales with what's **on screen**,
 not with graph size. This page explains the machinery and how to get the
 most out of it.
 
-## What ReFlow does for you
+## What RealFlow does for you
 
 | Mechanism | Effect |
 | --- | --- |
